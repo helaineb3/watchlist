@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="200" viewBox="0 0 160 200" fill="none">
+	<g opacity="0.55">
+		<path
+			d="M28 18 C42 34 48 72 36 118 C32 134 24 148 20 162 C38 140 52 98 48 56 C46 38 36 24 28 18Z"
+			fill="#d62828"
+		/>
+		<path
+			d="M28 18 C42 34 48 72 36 118 C32 134 24 148 20 162"
+			stroke="#b91c1c"
+			stroke-width="1.2"
+			stroke-linecap="round"
+			opacity="0.6"
+		/>
+		<path
+			d="M98 8 C88 28 82 64 90 108 C94 126 104 142 112 158 C104 132 96 88 100 48 C102 30 100 16 98 8Z"
+			fill="#0077b6"
+		/>
+		<path
+			d="M98 8 C88 28 82 64 90 108 C94 126 104 142 112 158"
+			stroke="#0369a1"
+			stroke-width="1.2"
+			stroke-linecap="round"
+			opacity="0.6"
+		/>
+		<path
+			d="M132 52 C118 68 108 96 112 132 C114 148 122 162 128 176 C136 150 140 108 136 72 C134 58 132 52 132 52Z"
+			fill="#40916c"
+		/>
+		<path
+			d="M132 52 C118 68 108 96 112 132 C114 148 122 162 128 176"
+			stroke="#2d6a4f"
+			stroke-width="1.2"
+			stroke-linecap="round"
+			opacity="0.6"
+		/>
+		<path
+			d="M58 112 C48 124 42 148 46 172 C48 182 54 190 58 196 C62 176 66 144 62 118 C60 108 58 112 58 112Z"
+			fill="#fbbf24"
+		/>
+		<path
+			d="M58 112 C48 124 42 148 46 172 C48 182 54 190 58 196"
+			stroke="#d97706"
+			stroke-width="1.2"
+			stroke-linecap="round"
+			opacity="0.6"
+		/>
+		<path
+			d="M8 88 C18 102 24 128 20 158 C18 170 12 180 8 188 C4 164 2 128 8 88Z"
+			fill="#ec4899"
+			opacity="0.7"
+		/>
+	</g>
+</svg>
