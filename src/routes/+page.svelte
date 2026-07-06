@@ -38,7 +38,34 @@
 			{:else}
 				<ul class="tropical-list">
 					{#each data.movies as movie (movie.id)}
-						<li class="tropical-list-item">{movie.title}</li>
+						<li class="tropical-list-item">
+							<span class="tropical-list-title">{movie.title}</span>
+							<form method="post" action="?/deleteMovie" use:enhance>
+								<input type="hidden" name="id" value={movie.id} />
+								<button
+									type="submit"
+									class="tropical-btn tropical-btn-delete"
+									aria-label="Remove {movie.title}"
+								>
+									<svg
+										xmlns="http://www.w3.org/2000/svg"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.75"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										aria-hidden="true"
+									>
+										<path d="M4 7h16" />
+										<path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+										<path d="M10 11v6" />
+										<path d="M14 11v6" />
+										<path d="M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12" />
+									</svg>
+								</button>
+							</form>
+						</li>
 					{/each}
 				</ul>
 			{/if}

@@ -219,6 +219,29 @@ body::before {
 	background: rgba(255, 252, 245, 0.9);
 }
 
+.tropical-btn-delete {
+	@apply shrink-0 rounded-lg p-1.5;
+	background: transparent;
+	border: 1.5px solid transparent;
+	color: var(--tropical-text-muted);
+}
+
+.tropical-btn-delete svg {
+	display: block;
+	width: 1rem;
+	height: 1rem;
+}
+
+.tropical-btn-delete:hover {
+	color: var(--tropical-error);
+	background: rgba(220, 38, 38, 0.08);
+	border-color: rgba(220, 38, 38, 0.2);
+}
+
+.tropical-btn-delete:active {
+	background: rgba(220, 38, 38, 0.14);
+}
+
 .tropical-error {
 	@apply text-sm font-medium;
 	color: var(--tropical-error);
@@ -239,9 +262,13 @@ body::before {
 }
 
 .tropical-list-item {
-	@apply relative py-3.5 pl-5 text-sm;
+	@apply relative flex items-center justify-between gap-3 py-3.5 pl-5 text-sm;
 	border-bottom: 1.5px dashed var(--tropical-border);
 	color: var(--tropical-text);
+}
+
+.tropical-list-title {
+	@apply min-w-0 flex-1;
 }
 
 .tropical-list-item::before {

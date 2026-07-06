@@ -1,4 +1,4 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { auth } from '$lib/server/auth';
@@ -40,6 +40,24 @@ export const actions: Actions = {
 			userId: event.locals.user.id,
 			title
 		});
+
+		return { success: true };
+	},
+	deleteMovie: async (event) => {
+		if (!event.locals.user) {
+			return redirect(302, '/login');
+		}
+
+		const formData = await event.request.formData();
+		const id = Number(formData.get('id'));
+
+		if (!Number.isInteger(id) || id <= 0) {
+			return fail(400, { message: 'Invalid movie' });
+		}
+
+		await db
+			.delete(movie)
+			.where(and(eq(movie.id, id), eq(movie.userId, event.locals.user.id)));
 
 		return { success: true };
 	},
