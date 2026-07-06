@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, index } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, index, integer } from 'drizzle-orm/pg-core';
 import { user } from './auth.schema';
 
 export const movie = pgTable(
@@ -9,6 +9,9 @@ export const movie = pgTable(
 			.notNull()
 			.references(() => user.id, { onDelete: 'cascade' }),
 		title: text('title').notNull(),
+		tmdbId: integer('tmdb_id'),
+		posterPath: text('poster_path'),
+		releaseYear: text('release_year'),
 		createdAt: timestamp('created_at').defaultNow().notNull()
 	},
 	(table) => [index('movie_userId_idx').on(table.userId)]

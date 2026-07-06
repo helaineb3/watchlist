@@ -15,6 +15,13 @@
       "when": 1783976400000,
       "tag": "0001_add_movie",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783374939737,
+      "tag": "0002_wealthy_malice",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,7 @@
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import MovieSearch from '$lib/components/MovieSearch.svelte';
 	import ParrotAside from '$lib/components/ParrotAside.svelte';
 	import type { ActionData, PageServerData } from './$types';
 
@@ -14,6 +15,7 @@
 		displayName.endsWith('s') ? `${displayName}'` : `${displayName}'s`
 	);
 	let titleInput = $state<HTMLInputElement | undefined>();
+	let movieSearch = $state<MovieSearch | undefined>();
 
 	function addMovieEnhance() {
 		return async ({
@@ -25,10 +27,14 @@
 		}) => {
 			await update();
 			if (result.type === 'success') {
-				titleInput?.form?.reset();
+				movieSearch?.reset();
 				titleInput?.focus();
 			}
 		};
+	}
+
+	function movieLabel(title: string, releaseYear: string | null) {
+		return releaseYear ? `${title} (${releaseYear})` : title;
 	}
 </script>
 
@@ -49,15 +55,7 @@
 				</header>
 
 				<form method="post" action="?/addMovie" use:enhance={addMovieEnhance} class="mb-6 flex gap-2">
-					<input
-						bind:this={titleInput}
-						type="text"
-						name="title"
-						placeholder="A movie you want to see…"
-						required
-						maxlength="200"
-						class="parrot-input min-w-0 flex-1"
-					/>
+					<MovieSearch bind:this={movieSearch} bind:inputRef={titleInput} />
 					<button type="submit" class="parrot-btn parrot-btn-primary shrink-0">
 						<Plus size={16} aria-hidden="true" />
 						Add
@@ -74,27 +72,55 @@
 						No movies yet — add one above.
 					</p>
 				{:else}
-					<ul class="parrot-list">
+					<ul class="parrot-poster-grid">
 						{#each data.movies as movie (movie.id)}
-							<li class="parrot-list-item">
-								<span class="parrot-list-title">
-									<Film class="parrot-list-icon" size={16} aria-hidden="true" />
-									{movie.title}
-								</span>
-								<form method="post" action="?/deleteMovie" use:enhance>
-									<input type="hidden" name="id" value={movie.id} />
-									<button
-										type="submit"
-										class="parrot-btn parrot-btn-delete"
-										aria-label="Remove {movie.title}"
-									>
-										<Trash2 size={16} aria-hidden="true" />
-									</button>
-								</form>
+							<li class="parrot-poster-card">
+								<div class="parrot-poster-media">
+									{#if movie.posterPath}
+										<img
+											src={movie.posterPath}
+											alt=""
+											class="parrot-poster-image"
+											width="342"
+											height="513"
+											loading="lazy"
+										/>
+									{:else}
+										<div class="parrot-poster-placeholder" aria-hidden="true">
+											<Film size={28} />
+										</div>
+									{/if}
+								</div>
+								<div class="parrot-poster-footer">
+									<p class="parrot-poster-title">
+										{movieLabel(movie.title, movie.releaseYear)}
+									</p>
+									<form method="post" action="?/deleteMovie" use:enhance>
+										<input type="hidden" name="id" value={movie.id} />
+										<button
+											type="submit"
+											class="parrot-btn parrot-btn-delete"
+											aria-label="Remove {movie.title}"
+										>
+											<Trash2 size={16} aria-hidden="true" />
+										</button>
+									</form>
+								</div>
 							</li>
 						{/each}
 					</ul>
 				{/if}
+
+				<p class="parrot-tmdb-attribution">
+					<img
+						src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a40269b365ee2031e235a2.svg"
+						alt="TMDB"
+						width="120"
+						height="16"
+						class="parrot-tmdb-logo"
+					/>
+					This product uses the TMDB API but is not endorsed or certified by TMDB.
+				</p>
 			</div>
 		</div>
 		<ParrotAside />

@@ -5,6 +5,17 @@ import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { movie } from '$lib/server/db/schema';
 
+function parseOptionalString(value: FormDataEntryValue | null) {
+	const parsed = value?.toString().trim();
+	return parsed || null;
+}
+
+function parseOptionalInt(value: FormDataEntryValue | null) {
+	const parsed = Number(value);
+	if (!Number.isInteger(parsed) || parsed <= 0) return null;
+	return parsed;
+}
+
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
 		return redirect(302, '/login');
@@ -38,7 +49,10 @@ export const actions: Actions = {
 
 		await db.insert(movie).values({
 			userId: event.locals.user.id,
-			title
+			title,
+			tmdbId: parseOptionalInt(formData.get('tmdbId')),
+			posterPath: parseOptionalString(formData.get('posterPath')),
+			releaseYear: parseOptionalString(formData.get('releaseYear'))
 		});
 
 		return { success: true };
