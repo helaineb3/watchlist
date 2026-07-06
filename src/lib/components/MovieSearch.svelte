@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { tick } from 'svelte';
 	import Film from '@lucide/svelte/icons/film';
 
 	type SearchResult = {
@@ -9,9 +10,11 @@
 	};
 
 	let {
-		inputRef = $bindable<HTMLInputElement | undefined>()
+		inputRef = $bindable<HTMLInputElement | undefined>(),
+		formRef
 	}: {
 		inputRef?: HTMLInputElement | undefined;
+		formRef?: HTMLFormElement;
 	} = $props();
 
 	let query = $state('');
@@ -64,12 +67,21 @@
 		scheduleSearch(value);
 	}
 
-	function selectResult(result: SearchResult) {
+	async function addManually() {
+		selected = null;
+		open = false;
+		results = [];
+		await tick();
+		formRef?.requestSubmit();
+	}
+
+	async function selectResult(result: SearchResult) {
 		selected = result;
 		query = result.title;
 		open = false;
 		results = [];
-		inputRef?.focus();
+		await tick();
+		formRef?.requestSubmit();
 	}
 
 	function handleFocus() {
@@ -77,6 +89,18 @@
 			open = true;
 			scheduleSearch(query);
 		}
+	}
+
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key !== 'Enter' || selected) return;
+		if (loading) return;
+
+		const canAddManually =
+			searchError || (query.trim().length >= 2 && !loading && results.length === 0);
+		if (!canAddManually) return;
+
+		event.preventDefault();
+		void addManually();
 	}
 
 	function handleBlur(event: FocusEvent) {
@@ -103,6 +127,7 @@
 		oninput={handleInput}
 		onfocus={handleFocus}
 		onblur={handleBlur}
+		onkeydown={handleKeydown}
 		placeholder="Search for a movie…"
 		required
 		maxlength="200"
@@ -125,9 +150,27 @@
 			{#if loading}
 				<li class="movie-search-status">Searching…</li>
 			{:else if searchError}
-				<li class="movie-search-status">Could not search TMDB. You can still add by title.</li>
+				<li role="presentation">
+					<button
+						type="button"
+						class="movie-search-manual"
+						onmousedown={(event) => event.preventDefault()}
+						onclick={() => addManually()}
+					>
+						Add “{query.trim()}” without a poster
+					</button>
+				</li>
 			{:else if results.length === 0}
-				<li class="movie-search-status">No matches — press Add to save “{query.trim()}” anyway.</li>
+				<li role="presentation">
+					<button
+						type="button"
+						class="movie-search-manual"
+						onmousedown={(event) => event.preventDefault()}
+						onclick={() => addManually()}
+					>
+						Add “{query.trim()}” anyway
+					</button>
+				</li>
 			{:else}
 				{#each results as result (result.id)}
 					<li role="presentation">
@@ -195,6 +238,27 @@
 		padding: 0.625rem 0.75rem;
 		font-size: var(--text-body-size);
 		color: var(--color-text-muted);
+	}
+
+	.movie-search-manual {
+		display: block;
+		width: 100%;
+		padding: 0.625rem 0.75rem;
+		border: none;
+		border-radius: calc(var(--radius-input) - 0.25rem);
+		background: transparent;
+		color: var(--color-text);
+		font-size: var(--text-body-size);
+		font-family: var(--font-body);
+		font-weight: 600;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.movie-search-manual:hover,
+	.movie-search-manual:focus-visible {
+		background: var(--color-surface-ghost-hover);
+		outline: none;
 	}
 
 	.movie-search-option {

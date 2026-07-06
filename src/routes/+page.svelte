@@ -2,7 +2,6 @@
 	import { enhance } from '$app/forms';
 	import Film from '@lucide/svelte/icons/film';
 	import LogOut from '@lucide/svelte/icons/log-out';
-	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import MovieSearch from '$lib/components/MovieSearch.svelte';
 	import ParrotAside from '$lib/components/ParrotAside.svelte';
@@ -16,6 +15,7 @@
 	);
 	let titleInput = $state<HTMLInputElement | undefined>();
 	let movieSearch = $state<MovieSearch | undefined>();
+	let addForm = $state<HTMLFormElement | undefined>();
 
 	function addMovieEnhance() {
 		return async ({
@@ -54,12 +54,14 @@
 					</form>
 				</header>
 
-				<form method="post" action="?/addMovie" use:enhance={addMovieEnhance} class="mb-6 flex gap-2">
-					<MovieSearch bind:this={movieSearch} bind:inputRef={titleInput} />
-					<button type="submit" class="parrot-btn parrot-btn-primary shrink-0">
-						<Plus size={16} aria-hidden="true" />
-						Add
-					</button>
+				<form
+					bind:this={addForm}
+					method="post"
+					action="?/addMovie"
+					use:enhance={addMovieEnhance}
+					class="mb-6"
+				>
+					<MovieSearch bind:this={movieSearch} bind:inputRef={titleInput} formRef={addForm} />
 				</form>
 
 				{#if form?.message}
