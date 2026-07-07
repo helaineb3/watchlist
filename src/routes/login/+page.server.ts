@@ -26,9 +26,9 @@ export const actions: Actions = {
 			});
 		} catch (error) {
 			if (error instanceof APIError) {
-				return fail(400, { message: error.message || 'Signin failed' });
+				return fail(400, { message: error.message || 'Signin failed', mode: 'login' as const });
 			}
-			return fail(500, { message: 'Unexpected error' });
+			return fail(500, { message: 'Unexpected error', mode: 'login' as const });
 		}
 
 		return redirect(302, '/');
@@ -37,7 +37,11 @@ export const actions: Actions = {
 		const formData = await event.request.formData();
 		const email = formData.get('email')?.toString() ?? '';
 		const password = formData.get('password')?.toString() ?? '';
-		const name = formData.get('name')?.toString() ?? '';
+		const name = formData.get('name')?.toString().trim() ?? '';
+
+		if (!name) {
+			return fail(400, { message: 'Name is required', mode: 'register' as const });
+		}
 
 		try {
 			await auth.api.signUpEmail({
@@ -50,9 +54,12 @@ export const actions: Actions = {
 			});
 		} catch (error) {
 			if (error instanceof APIError) {
-				return fail(400, { message: error.message || 'Registration failed' });
+				return fail(400, {
+					message: error.message || 'Registration failed',
+					mode: 'register' as const
+				});
 			}
-			return fail(500, { message: 'Unexpected error' });
+			return fail(500, { message: 'Unexpected error', mode: 'register' as const });
 		}
 
 		return redirect(302, '/');

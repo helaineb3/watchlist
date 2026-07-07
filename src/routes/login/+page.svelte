@@ -8,6 +8,14 @@
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
+
+	let mode = $state<'login' | 'register'>('login');
+
+	$effect(() => {
+		if (form?.mode === 'register' || form?.mode === 'login') {
+			mode = form.mode;
+		}
+	});
 </script>
 
 <div class="parrot-page">
@@ -23,45 +31,71 @@
 				<div class="parrot-title-row mb-2">
 					<h1 class="parrot-title">watchlist</h1>
 				</div>
-				<p class="parrot-subtitle mb-8">Sign in or create an account to start your list.</p>
+				<p class="parrot-subtitle mb-8">
+					{mode === 'login'
+						? 'Sign in to your watchlist.'
+						: 'Create an account to start your list.'}
+				</p>
 
-				<form method="post" action="?/signInEmail" use:enhance class="flex flex-col gap-4">
+				<form
+					method="post"
+					action={mode === 'login' ? '?/signInEmail' : '?/signUpEmail'}
+					use:enhance
+					class="flex flex-col gap-4"
+				>
 					<label class="parrot-label">
 						<span class="parrot-label-row">
 							<Mail size={14} aria-hidden="true" />
 							Email
 						</span>
-						<input type="email" name="email" required class="parrot-input" />
+						<input type="email" name="email" required class="parrot-input" autocomplete="email" />
 					</label>
 					<label class="parrot-label">
 						<span class="parrot-label-row">
 							<Lock size={14} aria-hidden="true" />
 							Password
 						</span>
-						<input type="password" name="password" required class="parrot-input" />
+						<input
+							type="password"
+							name="password"
+							required
+							class="parrot-input"
+							autocomplete={mode === 'login' ? 'current-password' : 'new-password'}
+						/>
 					</label>
-					<label class="parrot-label">
-						<span class="parrot-label-row">
-							<User size={14} aria-hidden="true" />
-							Name (for registration)
-						</span>
-						<input name="name" class="parrot-input" />
-					</label>
-					<div class="mt-2 flex gap-2">
-						<button type="submit" class="parrot-btn parrot-btn-primary flex-1">
+					{#if mode === 'register'}
+						<label class="parrot-label">
+							<span class="parrot-label-row">
+								<User size={14} aria-hidden="true" />
+								Name
+							</span>
+							<input name="name" required class="parrot-input" autocomplete="name" />
+						</label>
+					{/if}
+					<button type="submit" class="parrot-btn parrot-btn-primary mt-2 w-full">
+						{#if mode === 'login'}
 							<LogIn size={16} aria-hidden="true" />
 							Login
-						</button>
-						<button
-							type="submit"
-							formaction="?/signUpEmail"
-							class="parrot-btn parrot-btn-secondary flex-1"
-						>
+						{:else}
 							<UserPlus size={16} aria-hidden="true" />
 							Register
-						</button>
-					</div>
+						{/if}
+					</button>
 				</form>
+
+				<p class="login-mode-switch">
+					{#if mode === 'login'}
+						Need an account?
+						<button type="button" class="login-mode-switch-link" onclick={() => (mode = 'register')}>
+							Register
+						</button>
+					{:else}
+						Already have an account?
+						<button type="button" class="login-mode-switch-link" onclick={() => (mode = 'login')}>
+							Sign in
+						</button>
+					{/if}
+				</p>
 
 				{#if form?.message}
 					<p class="parrot-error mt-4">{form.message}</p>
@@ -98,5 +132,31 @@
 
 	.login-mondrian-block--yellow {
 		background: var(--color-mondrian-yellow);
+	}
+
+	.login-mode-switch {
+		margin: 0.875rem 0 0;
+		font-size: 0.8125rem;
+		color: var(--color-text-muted);
+		text-align: center;
+	}
+
+	.login-mode-switch-link {
+		padding: 0;
+		border: none;
+		background: none;
+		color: var(--color-mondrian-blue);
+		font: inherit;
+		font-size: inherit;
+		font-weight: 700;
+		cursor: pointer;
+		text-decoration: underline;
+		text-underline-offset: 0.125rem;
+	}
+
+	.login-mode-switch-link:hover,
+	.login-mode-switch-link:focus-visible {
+		color: var(--color-text);
+		outline: none;
 	}
 </style>
