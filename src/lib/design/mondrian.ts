@@ -42,15 +42,15 @@ export type MondrianViewportLayout = {
 
 const EMPTY_COMPOSITION_ROWS = 6;
 
-const INNER_COLS = 8;
+const INNER_COLS = 10;
 const VIEWPORT_COLS = 12;
 const INTERIOR_COL_START = 1;
-const INTERIOR_COL_END = 8;
+const INTERIOR_COL_END = 10;
 const COLORS: MondrianColor[] = ['red', 'blue', 'yellow', 'white'];
 
 /** Portrait tiles — equal col/row span on a 2:3 unit grid keeps every tile 2:3. */
 export const TILE_SPANS: MondrianSpan[] = [
-	{ col: 3, row: 3 },
+	{ col: 2, row: 2 },
 	{ col: 2, row: 2 },
 	{ col: 1, row: 1 }
 ];
@@ -58,9 +58,11 @@ export const TILE_SPANS: MondrianSpan[] = [
 const PLACEMENT_ANCHORS = [
 	{ row: 1, col: 1 },
 	{ row: 1, col: 6 },
+	{ row: 1, col: 9 },
 	{ row: 2, col: 4 },
 	{ row: 3, col: 1 },
 	{ row: 3, col: 6 },
+	{ row: 3, col: 9 },
 	{ row: 4, col: 3 },
 	{ row: 2, col: 8 },
 	{ row: 5, col: 5 }
@@ -213,9 +215,8 @@ function maxOccupiedRow(occupied: boolean[][]): number {
 	return 1;
 }
 
-function tileSpansForCell(row: number, col: number): MondrianSpan[] {
-	const offset = (row * 5 + col) % TILE_SPANS.length;
-	return [...TILE_SPANS.slice(offset), ...TILE_SPANS.slice(0, offset)];
+function tileSpansForCell(_row: number, _col: number): MondrianSpan[] {
+	return [{ col: 1, row: 1 }];
 }
 
 function fillInteriorGaps(
@@ -257,6 +258,21 @@ function fillInteriorGaps(
 	return colorIndex;
 }
 
+function sealGrid(
+	placed: PlacedMondrianCell[],
+	occupied: boolean[][],
+	colorIndex: number,
+	maxRow: number
+): number {
+	for (let row = 1; row <= maxRow; row += 1) {
+		for (let col = INTERIOR_COL_START; col <= INTERIOR_COL_END; col += 1) {
+			if (occupied[row]?.[col]) continue;
+			colorIndex = placeBlock(placed, occupied, row, col, 1, 1, colorIndex, INNER_COLS);
+		}
+	}
+	return colorIndex;
+}
+
 function buildInnerComposition(movies: MovieForLayout[]): PlacedMondrianCell[] {
 	const placed: PlacedMondrianCell[] = [];
 	const occupied: boolean[][] = [[]];
@@ -281,12 +297,15 @@ function buildInnerComposition(movies: MovieForLayout[]): PlacedMondrianCell[] {
 	const contentRows = movies.length === 0 ? 0 : maxOccupiedRow(occupied);
 	const targetRows =
 		movies.length === 0 ? EMPTY_COMPOSITION_ROWS : Math.max(contentRows, 4);
+	const canvasRows = movies.length > 0 ? targetRows + 1 : targetRows;
 
 	colorIndex = fillInteriorGaps(placed, occupied, colorIndex, targetRows);
 
 	if (movies.length > 0) {
-		fillInteriorGaps(placed, occupied, colorIndex, targetRows + 1);
+		colorIndex = fillInteriorGaps(placed, occupied, colorIndex, canvasRows);
 	}
+
+	sealGrid(placed, occupied, colorIndex, canvasRows);
 
 	return placed;
 }
@@ -315,13 +334,12 @@ function fillRowWithVariedBlocks(
 	return colorIndex;
 }
 
-function buildSideColumn(
+function buildSideStrip(
 	placed: PlacedMondrianCell[],
 	occupied: boolean[][],
 	startRow: number,
 	endRow: number,
-	leftCol: number,
-	rightCol: number,
+	col: number,
 	colorIndex: number,
 	maxCol: number,
 	tallEvery: number
@@ -330,11 +348,10 @@ function buildSideColumn(
 	while (row < endRow) {
 		const remaining = endRow - row;
 		const height =
-			remaining >= 2 && row % tallEvery === 0 && isFree(occupied, row, leftCol, 1, 2, maxCol)
+			remaining >= 2 && row % tallEvery === 0 && isFree(occupied, row, col, 1, 2, maxCol)
 				? 2
 				: 1;
-		colorIndex = placeBlock(placed, occupied, row, leftCol, 1, height, colorIndex, maxCol);
-		colorIndex = placeBlock(placed, occupied, row, rightCol, 1, height, colorIndex, maxCol);
+		colorIndex = placeBlock(placed, occupied, row, col, 1, height, colorIndex, maxCol);
 		row += height;
 	}
 	return colorIndex;
@@ -348,23 +365,21 @@ function buildOuterFrame(viewportRows: number, colorStart: number): PlacedMondri
 	colorIndex = fillRowWithVariedBlocks(placed, occupied, 1, colorIndex, VIEWPORT_COLS);
 	colorIndex = fillRowWithVariedBlocks(placed, occupied, viewportRows, colorIndex, VIEWPORT_COLS);
 
-	colorIndex = buildSideColumn(
+	colorIndex = buildSideStrip(
 		placed,
 		occupied,
 		2,
 		viewportRows,
 		1,
-		2,
 		colorIndex,
 		VIEWPORT_COLS,
 		2
 	);
-	colorIndex = buildSideColumn(
+	colorIndex = buildSideStrip(
 		placed,
 		occupied,
 		2,
 		viewportRows,
-		VIEWPORT_COLS - 1,
 		VIEWPORT_COLS,
 		colorIndex,
 		VIEWPORT_COLS,

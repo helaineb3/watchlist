@@ -4,7 +4,7 @@
 	import Library from '@lucide/svelte/icons/library';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import MovieSearch from '$lib/components/MovieSearch.svelte';
+	import Upload from '@lucide/svelte/icons/upload';
 	import MondrianBlockButton from '$lib/components/MondrianBlockButton.svelte';
 	import {
 		buildMondrianLayout,
@@ -36,26 +36,7 @@
 	);
 
 	let blockColors = $state<Record<string, MondrianColor>>({});
-
-	let titleInput = $state<HTMLInputElement | undefined>();
-	let movieSearch = $state<MovieSearch | undefined>();
-	let addForm = $state<HTMLFormElement | undefined>();
-
-	function addMovieEnhance() {
-		return async ({
-			result,
-			update
-		}: {
-			result: { type: string };
-			update: () => Promise<void>;
-		}) => {
-			await update();
-			if (result.type === 'success') {
-				movieSearch?.reset();
-				titleInput?.focus();
-			}
-		};
-	}
+	let importing = $state(false);
 
 	function movieLabel(title: string, releaseYear: string | null) {
 		return releaseYear ? `${title} (${releaseYear})` : title;
@@ -84,6 +65,24 @@
 	function outerBlockClass(cell: PlacedMondrianCell, index: number) {
 		return `mondrian-cell mondrian-cell--interactive mondrian-cell--${blockColor('outer', cell, index)}`;
 	}
+
+	function importEnhance() {
+		importing = true;
+		return async ({
+			result,
+			update
+		}: {
+			result: { type: string };
+			update: () => Promise<void>;
+		}) => {
+			await update();
+			importing = false;
+			if (result.type === 'success') {
+				const fileInput = document.querySelector<HTMLInputElement>('#library-csv-input');
+				if (fileInput) fileInput.value = '';
+			}
+		};
+	}
 </script>
 
 <div
@@ -105,12 +104,12 @@
 	>
 		<header class="parrot-header">
 			<div class="parrot-title-row">
-				<h1 class="parrot-title">{possessiveName} watchlist</h1>
+				<h1 class="parrot-title">{possessiveName} collection</h1>
 			</div>
 			<div class="parrot-header-actions">
-				<a href="/library" class="parrot-btn parrot-btn-ghost px-3 py-1.5 text-sm">
-					<Library size={16} aria-hidden="true" />
-					Collection
+				<a href="/" class="parrot-btn parrot-btn-ghost px-3 py-1.5 text-sm">
+					<Film size={16} aria-hidden="true" />
+					Watchlist
 				</a>
 				<form method="post" action="?/signOut" use:enhance>
 					<button type="submit" class="parrot-btn parrot-btn-ghost px-3 py-1.5 text-sm">
@@ -122,26 +121,62 @@
 		</header>
 
 		<div class="mondrian-search-panel">
-			<form bind:this={addForm} method="post" action="?/addMovie" use:enhance={addMovieEnhance}>
-				<MovieSearch bind:this={movieSearch} bind:inputRef={titleInput} formRef={addForm} />
+			<form method="post" action="?/importCsv" enctype="multipart/form-data" use:enhance={importEnhance}>
+				<div class="library-import-row">
+					<label class="library-file-label parrot-label">
+						<span class="parrot-label-row">
+							<Library size={16} aria-hidden="true" />
+							Upload CSV
+						</span>
+						<input
+							id="library-csv-input"
+							class="parrot-input library-file-input"
+							type="file"
+							name="csv"
+							accept=".csv,text/csv"
+							required
+						/>
+					</label>
+					<button
+						type="submit"
+						class="parrot-btn parrot-btn-primary library-import-btn"
+						disabled={importing}
+					>
+						<Upload size={16} aria-hidden="true" />
+						{importing ? 'Importing…' : 'Import'}
+					</button>
+				</div>
 			</form>
+
+			<p class="parrot-subtitle mt-3">
+				CSV with <strong>title</strong> and <strong>year</strong> columns. Replaces your current
+				collection. Up to 50 movies per import.
+			</p>
 
 			{#if form?.message}
 				<p class="parrot-error mt-4">{form.message}</p>
+			{/if}
+
+			{#if form?.importSummary}
+				<p class="parrot-import-summary mt-4">
+					Imported {form.importSummary.total} movies —
+					{form.importSummary.matched} matched with posters,
+					{form.importSummary.unmatched} without a TMDB match.
+				</p>
 			{/if}
 		</div>
 
 		{#if data.movies.length === 0}
 			<p class="parrot-empty mb-4">
-				<Film size={16} aria-hidden="true" />
-				No movies yet — search above to start your composition.
+				<Library size={16} aria-hidden="true" />
+				No movies yet — upload a CSV to build your collection grid.
 			</p>
 		{/if}
 
 		<ul
 			class="mondrian-composition"
 			style={`--inner-cols: ${MONDRIAN_INNER_COLS}; --composition-rows: ${layout.compositionRows}`}
-			aria-label="Watchlist composition"
+			aria-label="Collection composition"
 		>
 			{#each layout.inner as cell, index (cell.kind === 'movie' ? `movie-${cell.id}` : blockKey('inner', cell, index))}
 				{#if cell.kind === 'block'}
@@ -173,7 +208,7 @@
 								{/if}
 							</div>
 							<div class="mondrian-poster-overlay">
-								<form method="post" action="?/deleteMovie" use:enhance>
+								<form method="post" action="?/deleteOwnedMovie" use:enhance>
 									<input type="hidden" name="id" value={movie.id} />
 									<button
 										type="submit"
@@ -202,3 +237,32 @@
 		</p>
 	</article>
 </div>
+
+<style>
+	.library-import-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: 0.75rem;
+	}
+
+	.library-file-label {
+		flex: 1 1 14rem;
+		min-width: 0;
+	}
+
+	.library-file-input {
+		width: 100%;
+		padding: 0.625rem 0.875rem;
+	}
+
+	.library-import-btn {
+		flex: 0 0 auto;
+	}
+
+	.parrot-import-summary {
+		font-size: var(--text-body-size);
+		font-weight: 600;
+		color: var(--color-text);
+	}
+</style>

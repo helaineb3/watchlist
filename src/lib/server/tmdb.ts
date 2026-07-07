@@ -68,3 +68,77 @@ export async function searchMovies(query: string): Promise<TmdbSearchResult[]> {
 		releaseYear: releaseYearFromDate(result.release_date)
 	}));
 }
+
+function normalizeTitle(value: string) {
+	return value.trim().toLowerCase();
+}
+
+export async function matchMovieByTitle(
+	title: string,
+	releaseYear?: string | null
+): Promise<TmdbSearchResult | null> {
+	const results = await searchMovies(title);
+	if (results.length === 0) return null;
+
+	const normalizedTitle = normalizeTitle(title);
+
+	if (releaseYear) {
+		const titleAndYear = results.find(
+			(result) =>
+				normalizeTitle(result.title) === normalizedTitle && result.releaseYear === releaseYear
+		);
+		if (titleAndYear) return titleAndYear;
+
+		const yearMatch = results.find((result) => result.releaseYear === releaseYear);
+		if (yearMatch) return yearMatch;
+	}
+
+	const exactTitle = results.find((result) => normalizeTitle(result.title) === normalizedTitle);
+	if (exactTitle) return exactTitle;
+
+	return results[0];
+}
+
+const TMDB_MATCH_DELAY_MS = 260;
+
+function delay(ms: number) {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export type MatchedOwnedMovie = {
+	title: string;
+	releaseYear: string | null;
+	tmdbId: number | null;
+	posterPath: string | null;
+};
+
+export async function matchMoviesForImport(
+	rows: Array<{ title: string; releaseYear: string | null }>
+): Promise<MatchedOwnedMovie[]> {
+	const matched: MatchedOwnedMovie[] = [];
+
+	for (const [index, row] of rows.entries()) {
+		if (index > 0) {
+			await delay(TMDB_MATCH_DELAY_MS);
+		}
+
+		try {
+			const result = await matchMovieByTitle(row.title, row.releaseYear);
+			matched.push({
+				title: result?.title ?? row.title,
+				releaseYear: result?.releaseYear ?? row.releaseYear,
+				tmdbId: result?.id ?? null,
+				posterPath: result?.posterUrl ?? null
+			});
+		} catch {
+			matched.push({
+				title: row.title,
+				releaseYear: row.releaseYear,
+				tmdbId: null,
+				posterPath: null
+			});
+		}
+	}
+
+	return matched;
+}
