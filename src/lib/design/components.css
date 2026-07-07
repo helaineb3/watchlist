@@ -398,8 +398,38 @@ body::after {
 
 .mondrian-poster-overlay {
 	position: absolute;
-	inset: auto 0.25rem 0.25rem auto;
+	inset: 0;
 	z-index: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	pointer-events: none;
+}
+
+.mondrian-poster-title {
+	margin: 0;
+	padding: 0.375rem 2rem 0.375rem 0.5rem;
+	background: rgba(0, 0, 0, 0.78);
+	color: var(--color-mondrian-white);
+	font-family: var(--font-body);
+	font-size: 0.625rem;
+	font-weight: 700;
+	line-height: 1.25;
+	letter-spacing: 0.02em;
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+.mondrian-poster:hover .mondrian-poster-title,
+.mondrian-poster:focus-within .mondrian-poster-title {
+	opacity: 1;
+}
+
+.mondrian-poster-overlay form {
+	position: absolute;
+	right: 0.25rem;
+	bottom: 0.25rem;
+	pointer-events: auto;
 }
 
 .mondrian-poster-overlay .parrot-btn-delete {
@@ -417,6 +447,10 @@ body::after {
 }
 
 @media (hover: none) {
+	.mondrian-poster-title {
+		opacity: 1;
+	}
+
 	.mondrian-poster-overlay .parrot-btn-delete {
 		opacity: 1;
 	}

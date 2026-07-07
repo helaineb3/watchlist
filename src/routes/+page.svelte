@@ -5,7 +5,9 @@
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import MovieSearch from '$lib/components/MovieSearch.svelte';
+	import MovieFilter from '$lib/components/MovieFilter.svelte';
 	import MondrianBlockButton from '$lib/components/MondrianBlockButton.svelte';
+	import { filterMovies } from '$lib/movies/filter';
 	import {
 		buildMondrianLayout,
 		cycleMondrianColor,
@@ -25,9 +27,11 @@
 	);
 
 	const moviesById = $derived(new Map(data.movies.map((movie) => [movie.id, movie])));
+	let filterQuery = $state('');
+	const filteredMovies = $derived(filterMovies(data.movies, filterQuery));
 	const layout = $derived(
 		buildMondrianLayout(
-			data.movies.map((movie) => ({
+			filteredMovies.map((movie) => ({
 				id: movie.id,
 				title: movie.title,
 				releaseYear: movie.releaseYear
@@ -108,6 +112,7 @@
 				<h1 class="parrot-title">{possessiveName} watchlist</h1>
 			</div>
 			<div class="parrot-header-actions">
+				<MovieFilter bind:value={filterQuery} />
 				<a href="/library" class="parrot-btn parrot-btn-ghost px-3 py-1.5 text-sm">
 					<Library size={16} aria-hidden="true" />
 					Collection
@@ -135,6 +140,11 @@
 			<p class="parrot-empty mb-4">
 				<Film size={16} aria-hidden="true" />
 				No movies yet — search above to start your composition.
+			</p>
+		{:else if filteredMovies.length === 0}
+			<p class="parrot-empty mb-4">
+				<Film size={16} aria-hidden="true" />
+				No movies match “{filterQuery.trim()}”.
 			</p>
 		{/if}
 
@@ -173,6 +183,7 @@
 								{/if}
 							</div>
 							<div class="mondrian-poster-overlay">
+								<p class="mondrian-poster-title">{movieLabel(movie.title, movie.releaseYear)}</p>
 								<form method="post" action="?/deleteMovie" use:enhance>
 									<input type="hidden" name="id" value={movie.id} />
 									<button

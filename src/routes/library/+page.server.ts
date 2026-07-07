@@ -10,6 +10,17 @@ import { matchMoviesForImport } from '$lib/server/tmdb';
 const MAX_IMPORT_ROWS = 50;
 const MAX_FILE_BYTES = 256 * 1024;
 
+function parseOptionalString(value: FormDataEntryValue | null) {
+	const parsed = value?.toString().trim();
+	return parsed || null;
+}
+
+function parseOptionalInt(value: FormDataEntryValue | null) {
+	const parsed = Number(value);
+	if (!Number.isInteger(parsed) || parsed <= 0) return null;
+	return parsed;
+}
+
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
 		return redirect(302, '/login');
@@ -25,6 +36,32 @@ export const load: PageServerLoad = async (event) => {
 };
 
 export const actions: Actions = {
+	addOwnedMovie: async (event) => {
+		if (!event.locals.user) {
+			return redirect(302, '/login');
+		}
+
+		const formData = await event.request.formData();
+		const title = formData.get('title')?.toString().trim() ?? '';
+
+		if (!title) {
+			return fail(400, { message: 'Title is required' });
+		}
+
+		if (title.length > 200) {
+			return fail(400, { message: 'Title must be 200 characters or less' });
+		}
+
+		await db.insert(ownedMovie).values({
+			userId: event.locals.user.id,
+			title,
+			tmdbId: parseOptionalInt(formData.get('tmdbId')),
+			posterPath: parseOptionalString(formData.get('posterPath')),
+			releaseYear: parseOptionalString(formData.get('releaseYear'))
+		});
+
+		return { success: true };
+	},
 	importCsv: async (event) => {
 		if (!event.locals.user) {
 			return redirect(302, '/login');
