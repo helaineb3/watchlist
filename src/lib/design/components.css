@@ -1,94 +1,61 @@
-/* UI components — consume design tokens */
+/* Mondrian UI */
 
 body {
 	min-height: 100dvh;
-	background-color: var(--color-bg-base);
-	background-image:
-		linear-gradient(var(--color-bg-scrim), var(--color-bg-scrim)),
-		radial-gradient(ellipse 50% 40% at 12% 18%, var(--color-bg-blob-1) 0%, transparent 55%),
-		radial-gradient(ellipse 45% 35% at 88% 12%, var(--color-bg-blob-2) 0%, transparent 50%),
-		radial-gradient(ellipse 40% 30% at 78% 88%, var(--color-bg-blob-3) 0%, transparent 48%),
-		radial-gradient(ellipse 55% 45% at 22% 82%, var(--color-bg-blob-4) 0%, transparent 52%),
-		var(--color-bg-gradient);
-	background-size: auto;
-	background-position: 0 0;
-	background-attachment: fixed;
+	margin: 0;
+	background: var(--color-grid);
 }
 
-body::before {
-	content: '';
-	position: fixed;
-	inset: 0;
-	pointer-events: none;
-	z-index: 0;
-	background: url('/parrots/feathers-texture.png') center / cover no-repeat;
-	opacity: calc(var(--color-bg-feather-opacity) * 0.12);
-	filter: saturate(1.1) blur(1px);
-	mix-blend-mode: multiply;
-}
-
+body::before,
 body::after {
-	content: '';
-	position: fixed;
-	inset: 0;
-	pointer-events: none;
-	z-index: 0;
-	background: url('/feathers-pattern.svg') repeat;
-	background-size: 180px 220px;
-	opacity: var(--color-bg-feather-opacity);
-	mix-blend-mode: soft-light;
+	display: none;
 }
 
-@media (prefers-color-scheme: dark) {
-	body::before {
-		opacity: 0.18;
-		mix-blend-mode: soft-light;
-		filter: saturate(1.05) blur(2px);
-	}
+.mondrian-viewport {
+	position: relative;
+	display: grid;
+	grid-template-columns: repeat(var(--viewport-cols), minmax(0, 1fr));
+	grid-template-rows: repeat(var(--viewport-rows), minmax(5.5rem, auto));
+	gap: var(--color-grid-width);
+	width: 100%;
+	min-height: 100dvh;
+	padding: var(--color-grid-width);
+	background: var(--color-grid);
+	box-sizing: border-box;
+}
 
-	body::after {
-		opacity: 0.35;
-		mix-blend-mode: overlay;
-	}
+.mondrian-panel {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: min-content;
+	padding: 1.25rem 1.25rem 1.5rem;
+	background: var(--color-mondrian-white);
+	border: var(--color-grid-width) solid var(--color-grid);
+	overflow: visible;
+}
+
+.mondrian-panel .parrot-header {
+	margin-bottom: 1rem;
+	padding-bottom: 1rem;
+}
+
+.mondrian-panel .mondrian-search-panel {
+	margin-bottom: 1rem;
+	padding-bottom: 1rem;
 }
 
 .parrot-card {
 	position: relative;
-	overflow: hidden;
 	background: var(--color-surface-card);
-	border: 1.5px solid var(--color-border);
+	border: var(--color-grid-width) solid var(--color-grid);
 	border-radius: var(--radius-card);
-	box-shadow: var(--shadow-card), var(--shadow-card-inset);
-	backdrop-filter: blur(10px);
+	box-shadow: none;
 }
 
-.parrot-card::before {
-	content: '';
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 4px;
-	background: linear-gradient(
-		90deg,
-		var(--color-scarlet) 0%,
-		var(--color-gold) 30%,
-		var(--color-blue) 65%,
-		var(--color-green) 100%
-	);
-}
-
+.parrot-card::before,
 .parrot-card::after {
-	content: '';
-	position: absolute;
-	inset: 0;
-	pointer-events: none;
-	border-radius: inherit;
-	background-image:
-		radial-gradient(circle at 95% 10%, var(--color-spot-1) 0%, var(--color-spot-1) 4px, transparent 4px),
-		radial-gradient(circle at 90% 20%, var(--color-spot-2) 0%, var(--color-spot-2) 2.5px, transparent 2.5px),
-		radial-gradient(circle at 5% 90%, var(--color-spot-3) 0%, var(--color-spot-3) 5px, transparent 5px),
-		radial-gradient(circle at 12% 82%, var(--color-spot-4) 0%, var(--color-spot-4) 3px, transparent 3px);
+	display: none;
 }
 
 .parrot-card-inner {
@@ -97,19 +64,7 @@ body::after {
 }
 
 .parrot-feather-strip {
-	display: flex;
-	justify-content: center;
-	gap: 0.5rem;
-	margin-bottom: var(--space-section);
-}
-
-.parrot-feather-strip img {
-	width: 2.5rem;
-	height: 2.5rem;
-	border-radius: var(--radius-chip);
-	object-fit: cover;
-	border: 2px solid var(--color-feather-ring);
-	box-shadow: var(--shadow-feather);
+	display: none;
 }
 
 .parrot-header {
@@ -117,74 +72,37 @@ body::after {
 	flex-direction: column;
 	gap: var(--space-stack);
 	margin-bottom: var(--space-section);
+	padding-bottom: var(--space-section);
+	border-bottom: var(--color-grid-width) solid var(--color-grid);
 }
 
 @media (min-width: 640px) {
 	.parrot-header {
 		flex-direction: row;
-		align-items: flex-start;
+		align-items: center;
 		justify-content: space-between;
 	}
 }
 
 .parrot-title-row {
 	display: flex;
-	align-items: flex-start;
+	align-items: center;
 }
 
 .parrot-title {
-	line-height: 1.5;
-	padding-block: 0.125rem 0.35rem;
-	background: linear-gradient(
-		115deg,
-		var(--color-scarlet) 0%,
-		var(--color-gold) 35%,
-		var(--color-cyan) 70%,
-		var(--color-leaf) 100%
-	);
-	-webkit-background-clip: text;
-	background-clip: text;
-	color: transparent;
-	-webkit-box-decoration-break: clone;
-	box-decoration-break: clone;
-}
-
-.parrot-user-bar {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.5rem;
-}
-
-@media (min-width: 640px) {
-	.parrot-user-bar {
-		justify-content: flex-end;
-	}
-}
-
-.parrot-user {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.375rem;
-	border-radius: var(--radius-chip);
-	padding: 0.375rem 0.75rem;
-	font-size: var(--text-body-size);
-	background: var(--color-surface-chip);
-	border: 1px solid var(--color-border);
+	line-height: 1.1;
+	padding: 0;
+	background: none;
+	-webkit-background-clip: unset;
+	background-clip: unset;
 	color: var(--color-text);
-}
-
-.parrot-user-icon {
-	color: var(--color-accent-user-icon);
-	flex-shrink: 0;
 }
 
 .parrot-label {
 	display: flex;
 	flex-direction: column;
 	gap: 0.375rem;
-	font-weight: 500;
-	color: var(--color-text-muted);
+	color: var(--color-text);
 }
 
 .parrot-label-row {
@@ -196,29 +114,28 @@ body::after {
 .parrot-input {
 	cursor: text;
 	border-radius: var(--radius-input);
-	padding: 0.625rem 0.875rem;
+	padding: 0.75rem 0.875rem;
 	font-size: var(--text-body-size);
 	font-family: var(--font-body);
 	outline: none;
-	transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
+	transition: box-shadow 0.15s;
 	background: var(--color-surface-input);
-	border: 1.5px solid var(--color-border);
+	border: var(--color-grid-width) solid var(--color-grid);
 	color: var(--color-text);
 }
 
 .parrot-input::placeholder {
 	color: var(--color-text-muted);
-	opacity: 0.65;
+	opacity: 0.75;
 }
 
 .parrot-input:hover {
-	border-color: var(--color-leaf);
 	background: var(--color-surface-input-hover);
 }
 
 .parrot-input:focus {
-	border-color: var(--color-primary);
-	box-shadow: 0 0 0 3px var(--color-focus-ring);
+	border-color: var(--color-grid);
+	box-shadow: inset 0 0 0 2px var(--color-mondrian-blue);
 	background: var(--color-surface-input-focus);
 }
 
@@ -232,52 +149,42 @@ body::after {
 	padding: 0.625rem 1rem;
 	font-size: var(--text-body-size);
 	font-family: var(--font-body);
-	font-weight: 600;
-	transition: background-color 0.2s, border-color 0.2s, color 0.2s, filter 0.2s;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	transition: filter 0.15s;
+	border: var(--color-grid-width) solid var(--color-grid);
 }
 
 .parrot-btn-primary {
-	background: linear-gradient(
-		135deg,
-		var(--color-primary-dark) 0%,
-		var(--color-primary) 55%,
-		var(--color-primary-light) 100%
-	);
-	border: 1.5px solid rgba(255, 255, 255, 0.25);
-	color: white;
-	box-shadow: 0 4px 16px var(--color-primary-shadow);
+	background: var(--color-mondrian-red);
+	color: var(--color-text-on-primary);
 }
 
 .parrot-btn-primary:hover {
-	filter: brightness(1.06) saturate(1.05);
+	filter: brightness(1.05);
 }
 
 .parrot-btn-primary:active {
-	filter: brightness(0.97);
+	filter: brightness(0.95);
 }
 
 .parrot-btn-secondary {
-	background: var(--color-surface-card);
-	border: 1.5px solid var(--color-green);
-	color: var(--color-text);
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+	background: var(--color-mondrian-blue);
+	color: var(--color-text-on-primary);
 }
 
 .parrot-btn-secondary:hover {
-	background: var(--color-surface-card-hover);
-	border-color: var(--color-leaf);
+	filter: brightness(1.08);
 }
 
 .parrot-btn-ghost {
-	background: transparent;
-	border: 1.5px solid transparent;
-	color: var(--color-text-muted);
+	background: var(--color-mondrian-white);
+	color: var(--color-text);
 }
 
 .parrot-btn-ghost:hover {
-	color: var(--color-scarlet);
 	background: var(--color-surface-ghost-hover);
-	border-color: var(--color-ghost-hover-border);
 }
 
 .parrot-btn-ghost:active {
@@ -287,32 +194,18 @@ body::after {
 .parrot-btn-delete {
 	flex-shrink: 0;
 	padding: 0.375rem;
-	border-radius: calc(var(--radius-btn) - 0.125rem);
-	background: transparent;
-	border: 1.5px solid transparent;
-	color: var(--color-text-muted);
+	background: var(--color-mondrian-white);
+	color: var(--color-text);
 }
 
 .parrot-btn-delete:hover {
-	color: var(--color-error);
-	background: rgba(193, 18, 31, 0.12);
-	border-color: rgba(193, 18, 31, 0.25);
-}
-
-@media (prefers-color-scheme: dark) {
-	.parrot-btn-delete:hover {
-		background: rgba(255, 107, 107, 0.12);
-		border-color: rgba(255, 107, 107, 0.25);
-	}
-}
-
-.parrot-btn-delete:active {
-	background: rgba(193, 18, 31, 0.18);
+	background: var(--color-mondrian-red);
+	color: var(--color-text-on-primary);
 }
 
 .parrot-error {
 	font-size: var(--text-body-size);
-	font-weight: 500;
+	font-weight: 600;
 	color: var(--color-error);
 }
 
@@ -321,124 +214,231 @@ body::after {
 	align-items: center;
 	gap: 0.5rem;
 	font-size: var(--text-body-size);
-	font-style: italic;
+	font-weight: 500;
 	color: var(--color-text-muted);
 }
 
 .parrot-subtitle {
 	font-size: var(--text-body-size);
 	color: var(--color-text-muted);
-}
-
-.parrot-list {
-	border-top: 1.5px dashed var(--color-border);
-}
-
-.parrot-list-item {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0.75rem;
-	padding-block: 0.875rem;
-	font-size: var(--text-body-size);
-	border-bottom: 1.5px dashed var(--color-border);
-	color: var(--color-text);
-}
-
-.parrot-list-title {
-	display: flex;
-	min-width: 0;
-	flex: 1;
-	align-items: center;
-	gap: 0.5rem;
-}
-
-.parrot-list-icon {
-	color: var(--color-accent-list-icon);
-	flex-shrink: 0;
-}
-
-.parrot-poster-grid {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
-	gap: 1rem;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-}
-
-.parrot-poster-card {
-	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-	min-width: 0;
-}
-
-.parrot-poster-media {
-	position: relative;
-	overflow: hidden;
-	aspect-ratio: 2 / 3;
-	border-radius: 0.625rem;
-	border: 1.5px solid var(--color-border);
-	background: var(--color-surface-chip);
-	box-shadow: var(--shadow-feather);
-}
-
-.parrot-poster-image {
-	display: block;
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-}
-
-.parrot-poster-placeholder {
-	display: flex;
-	width: 100%;
-	height: 100%;
-	align-items: center;
-	justify-content: center;
-	color: var(--color-text-muted);
-	background: linear-gradient(
-		160deg,
-		var(--color-surface-chip) 0%,
-		var(--color-surface-input) 100%
-	);
-}
-
-.parrot-poster-footer {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 0.375rem;
-}
-
-.parrot-poster-title {
-	margin: 0;
-	min-width: 0;
-	flex: 1;
-	font-size: 0.8125rem;
-	font-weight: 600;
-	line-height: 1.35;
-	color: var(--color-text);
+	max-width: 28rem;
 }
 
 .parrot-tmdb-attribution {
 	display: flex;
 	flex-direction: column;
-	align-items: center;
+	align-items: flex-start;
 	gap: 0.375rem;
-	margin-top: 2rem;
-	padding-top: 1rem;
-	border-top: 1px dashed var(--color-border);
+	margin-top: 1rem;
+	padding: 0.75rem 1rem;
+	border: var(--color-grid-width) solid var(--color-grid);
 	font-size: 0.6875rem;
 	line-height: 1.4;
-	text-align: center;
-	color: var(--color-text-muted);
+	color: var(--color-mondrian-white);
+	background: var(--color-mondrian-black);
 }
 
 .parrot-tmdb-logo {
 	display: block;
-	height: 1rem;
+	height: 1.125rem;
 	width: auto;
-	opacity: 0.85;
+}
+
+/* Mondrian composition grid */
+
+.mondrian-composition {
+	display: grid;
+	gap: var(--color-grid-width);
+	margin: 0;
+	padding: var(--color-grid-width);
+	list-style: none;
+	background: var(--color-grid);
+	border: var(--color-grid-width) solid var(--color-grid);
+	flex: 0 0 auto;
+	align-items: stretch;
+	align-content: start;
+	container-type: inline-size;
+	--mondrian-unit-w: min(
+		calc((100cqw - (var(--inner-cols, 8) - 1) * var(--color-grid-width)) / var(--inner-cols, 8)),
+		6rem
+	);
+	--mondrian-row-h: calc(var(--mondrian-unit-w) * 1.5);
+	grid-template-columns: repeat(var(--inner-cols, 8), var(--mondrian-unit-w));
+	grid-template-rows: repeat(var(--composition-rows, 6), var(--mondrian-row-h));
+}
+
+.mondrian-cell {
+	position: relative;
+	min-width: 0;
+	min-height: 0;
+	align-self: stretch;
+	background: var(--color-mondrian-white);
+	overflow: hidden;
+	transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.mondrian-cell.mondrian-poster {
+	background: var(--color-mondrian-black);
+}
+
+.mondrian-poster {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+	min-height: 100%;
+	background: var(--color-mondrian-black);
+	cursor: default;
+	overflow: hidden;
+}
+
+.mondrian-poster:hover {
+	filter: none;
+}
+
+.mondrian-poster:focus-within {
+	outline: 3px solid var(--color-mondrian-blue);
+	outline-offset: -3px;
+}
+
+.mondrian-poster-media {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	display: block;
+}
+
+.mondrian-poster-image {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	object-position: center center;
+}
+
+.mondrian-poster-placeholder {
+	display: flex;
+	width: 100%;
+	height: 100%;
+	align-items: center;
+	justify-content: center;
+	color: var(--color-mondrian-white);
+	background: var(--color-mondrian-black);
+}
+
+.mondrian-cell--interactive {
+	cursor: pointer;
+}
+
+.mondrian-cell--interactive:hover {
+	filter: brightness(1.08);
+}
+
+:global(.mondrian-viewport > .mondrian-cell--interactive:hover),
+:global(.mondrian-viewport > .mondrian-color-btn:hover) {
+	filter: brightness(1.08);
+}
+
+.mondrian-cell--interactive:focus-visible {
+	outline: 3px solid var(--color-mondrian-black);
+	outline-offset: -3px;
+}
+
+.mondrian-cell--interactive:active {
+	filter: brightness(0.95);
+	transform: scale(0.99);
+}
+
+.mondrian-color-btn {
+	display: block;
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	border: none;
+	cursor: pointer;
+	background: inherit;
+	transition: inherit;
+}
+
+.mondrian-color-btn:focus-visible {
+	outline: 3px solid var(--color-mondrian-black);
+	outline-offset: -3px;
+}
+
+.mondrian-cell--red {
+	background: var(--color-mondrian-red);
+}
+
+.mondrian-cell--blue {
+	background: var(--color-mondrian-blue);
+}
+
+.mondrian-cell--yellow {
+	background: var(--color-mondrian-yellow);
+}
+
+.mondrian-cell--white {
+	background: var(--color-mondrian-white);
+}
+
+.mondrian-poster-overlay {
+	position: absolute;
+	inset: auto 0.25rem 0.25rem auto;
+	z-index: 1;
+}
+
+.mondrian-poster-overlay .parrot-btn-delete {
+	padding: 0.2rem;
+	background: rgba(255, 255, 255, 0.15);
+	border-color: rgba(255, 255, 255, 0.35);
+	color: var(--color-mondrian-white);
+	opacity: 0;
+	transition: opacity 0.15s ease;
+}
+
+.mondrian-poster:hover .mondrian-poster-overlay .parrot-btn-delete,
+.mondrian-poster:focus-within .mondrian-poster-overlay .parrot-btn-delete {
+	opacity: 1;
+}
+
+@media (hover: none) {
+	.mondrian-poster-overlay .parrot-btn-delete {
+		opacity: 1;
+	}
+}
+
+.mondrian-poster-overlay .parrot-btn-delete:hover {
+	background: var(--color-mondrian-red);
+	border-color: var(--color-mondrian-black);
+	color: var(--color-mondrian-white);
+	opacity: 1;
+}
+
+.mondrian-search-panel {
+	padding-bottom: var(--space-section);
+	margin-bottom: var(--space-section);
+	border-bottom: var(--color-grid-width) solid var(--color-grid);
+}
+
+@media (max-width: 640px) {
+	.mondrian-viewport {
+		grid-template-columns: repeat(var(--viewport-cols), minmax(0, 1fr));
+		grid-template-rows: repeat(var(--viewport-rows), minmax(4.5rem, auto));
+		padding: var(--color-grid-width);
+	}
+
+	.mondrian-panel {
+		grid-column: 2 / span 10 !important;
+		padding: 1rem;
+	}
+
+	.mondrian-composition {
+		--mondrian-unit-w: min(
+			calc((100cqw - (var(--inner-cols, 8) - 1) * var(--color-grid-width)) / var(--inner-cols, 8)),
+			4.75rem
+		);
+		--mondrian-row-h: calc(var(--mondrian-unit-w) * 1.5);
+	}
+
 }

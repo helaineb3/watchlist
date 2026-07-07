@@ -1,10 +1,11 @@
-/* Font presets — set html[data-font="…"] in layout */
+/* Font presets */
 
-html[data-font='system'] {
-	--font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-	--font-display: var(--font-body);
-	--text-title-weight: 600;
-	--text-title-tracking: -0.025em;
+html[data-font='mondrian'] {
+	--font-body: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Archivo Black', 'Arial Black', sans-serif;
+	--text-title-weight: 400;
+	--text-title-tracking: 0.06em;
+	--text-title-size: clamp(1.5rem, 4vw, 2.25rem);
 }
 
 html[data-font='pacifico'] {
@@ -15,47 +16,11 @@ html[data-font='pacifico'] {
 	--text-title-size: 1.75rem;
 }
 
-html[data-font='satisfy'] {
-	--font-body: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
-	--font-display: 'Satisfy', 'Segoe Script', cursive;
-	--text-title-weight: 400;
-	--text-title-tracking: 0.02em;
-	--text-title-size: 1.75rem;
-}
-
-html[data-font='fredoka'] {
-	--font-body: 'Fredoka', ui-sans-serif, system-ui, sans-serif;
-	--font-display: var(--font-body);
-	--text-title-weight: 600;
-	--text-title-tracking: 0.01em;
-}
-
-html[data-font='quicksand'] {
-	--font-body: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
-	--font-display: var(--font-body);
-	--text-title-weight: 700;
-	--text-title-tracking: 0.02em;
-}
-
-html[data-font='baloo-2'] {
-	--font-body: 'Baloo 2', ui-sans-serif, system-ui, sans-serif;
-	--font-display: var(--font-body);
-	--text-title-weight: 600;
-	--text-title-tracking: 0.01em;
-}
-
-html[data-font='caveat'] {
-	--font-body: 'Quicksand', ui-sans-serif, system-ui, sans-serif;
-	--font-display: 'Caveat', 'Segoe Script', cursive;
-	--text-title-weight: 600;
-	--text-title-tracking: 0.02em;
-	--text-title-size: 1.875rem;
-}
-
 html {
 	font-family: var(--font-body);
 	font-size: var(--text-body-size);
 	color: var(--color-text);
+	background: var(--color-mondrian-white);
 }
 
 .parrot-title {
@@ -63,8 +28,13 @@ html {
 	font-size: var(--text-title-size);
 	font-weight: var(--text-title-weight);
 	letter-spacing: var(--text-title-tracking);
+	text-transform: uppercase;
+	color: var(--color-text);
 }
 
 .parrot-label {
 	font-size: var(--text-label-size);
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
 }

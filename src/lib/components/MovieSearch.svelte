@@ -219,25 +219,28 @@
 
 	.movie-search-results {
 		position: absolute;
-		top: calc(100% + 0.375rem);
+		top: calc(100% + var(--color-grid-width));
 		left: 0;
 		right: 0;
 		z-index: 20;
 		max-height: 16rem;
 		overflow-y: auto;
 		margin: 0;
-		padding: 0.375rem;
+		padding: 0;
 		list-style: none;
-		background: var(--color-surface-card-hover);
-		border: 1.5px solid var(--color-border);
-		border-radius: var(--radius-input);
-		box-shadow: var(--shadow-card);
+		background: var(--color-grid);
+		border: var(--color-grid-width) solid var(--color-grid);
+		border-radius: 0;
+		box-shadow: none;
+		gap: var(--color-grid-width);
 	}
 
 	.movie-search-status {
 		padding: 0.625rem 0.75rem;
 		font-size: var(--text-body-size);
-		color: var(--color-text-muted);
+		color: var(--color-text);
+		background: var(--color-mondrian-white);
+		border-bottom: var(--color-grid-width) solid var(--color-grid);
 	}
 
 	.movie-search-manual {
@@ -245,19 +248,22 @@
 		width: 100%;
 		padding: 0.625rem 0.75rem;
 		border: none;
-		border-radius: calc(var(--radius-input) - 0.25rem);
-		background: transparent;
+		border-bottom: var(--color-grid-width) solid var(--color-grid);
+		border-radius: 0;
+		background: var(--color-mondrian-yellow);
 		color: var(--color-text);
 		font-size: var(--text-body-size);
 		font-family: var(--font-body);
-		font-weight: 600;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
 		text-align: left;
 		cursor: pointer;
 	}
 
 	.movie-search-manual:hover,
 	.movie-search-manual:focus-visible {
-		background: var(--color-surface-ghost-hover);
+		background: var(--color-mondrian-white);
 		outline: none;
 	}
 
@@ -268,8 +274,9 @@
 		gap: 0.625rem;
 		padding: 0.5rem;
 		border: none;
-		border-radius: calc(var(--radius-input) - 0.25rem);
-		background: transparent;
+		border-bottom: var(--color-grid-width) solid var(--color-grid);
+		border-radius: 0;
+		background: var(--color-mondrian-white);
 		color: var(--color-text);
 		text-align: left;
 		cursor: pointer;
@@ -278,7 +285,7 @@
 
 	.movie-search-option:hover,
 	.movie-search-option:focus-visible {
-		background: var(--color-surface-ghost-hover);
+		background: var(--color-mondrian-yellow);
 		outline: none;
 	}
 
@@ -286,7 +293,8 @@
 		width: 34px;
 		height: 51px;
 		flex-shrink: 0;
-		border-radius: 0.375rem;
+		border-radius: 0;
+		border: 2px solid var(--color-grid);
 		object-fit: cover;
 		background: var(--color-surface-chip);
 	}

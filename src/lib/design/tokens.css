@@ -1,147 +1,77 @@
-/* Design tokens — primitives, semantics, light/dark themes */
+/* Piet Mondrian / De Stijl design tokens */
 
 :root {
 	color-scheme: light;
 
-	/* ── Color primitives (macaw plumage) ── */
-	--color-scarlet: #c8102e;
-	--color-coral: #e63946;
-	--color-parrot-red: #e02020;
-	--color-gold: #fbbf24;
-	--color-sun: #ffd60a;
-	--color-blue: #0077b6;
-	--color-sky: #0096c7;
-	--color-cyan: #00b4d8;
-	--color-green: #40916c;
-	--color-leaf: #52b788;
-	--color-jungle: #1b4332;
+	/* Primary palette */
+	--color-mondrian-red: #d40908;
+	--color-mondrian-blue: #005cb8;
+	--color-mondrian-yellow: #f7d308;
+	--color-mondrian-white: #ffffff;
+	--color-mondrian-black: #111111;
 
-	/* ── Semantic colors (light) ── */
-	--color-text: #1b4332;
-	--color-text-muted: #52796f;
-	--color-error: #c1121f;
-	--color-border: rgba(27, 67, 50, 0.18);
+	--color-text: var(--color-mondrian-black);
+	--color-text-muted: #444444;
+	--color-text-on-primary: var(--color-mondrian-white);
+	--color-error: var(--color-mondrian-red);
+	--color-border: var(--color-mondrian-black);
+	--color-grid: var(--color-mondrian-black);
+	--color-grid-width: 5px;
 
-	--color-bg-base: #d8f3dc;
-	--color-bg-gradient: linear-gradient(165deg, #d8f3dc 0%, #fefae0 42%, #caf0f8 100%);
-	--color-bg-blob-1: rgba(200, 16, 46, 0.14);
-	--color-bg-blob-2: rgba(0, 119, 182, 0.16);
-	--color-bg-blob-3: rgba(251, 191, 36, 0.2);
-	--color-bg-blob-4: rgba(64, 145, 108, 0.22);
-	--color-bg-dot-1: rgba(200, 16, 46, 0.1);
-	--color-bg-dot-2: rgba(0, 150, 199, 0.09);
-	--color-bg-dot-3: rgba(251, 191, 36, 0.11);
-	--color-bg-scrim: rgba(216, 243, 220, 0.62);
-	--color-bg-feather-opacity: 0.85;
+	--color-bg-base: var(--color-mondrian-white);
+	--color-bg-gradient: none;
+	--color-bg-scrim: transparent;
+	--color-bg-feather-opacity: 0;
 
-	--color-surface-card: rgba(255, 252, 247, 0.88);
-	--color-surface-card-hover: rgba(255, 252, 247, 0.96);
-	--color-surface-chip: rgba(255, 255, 255, 0.65);
-	--color-surface-input: rgba(255, 255, 255, 0.78);
-	--color-surface-input-hover: rgba(255, 255, 255, 0.92);
-	--color-surface-input-focus: #ffffff;
-	--color-surface-ghost-hover: rgba(255, 252, 247, 0.75);
-	--color-surface-ghost-active: rgba(255, 252, 247, 0.9);
+	--color-surface-card: var(--color-mondrian-white);
+	--color-surface-card-hover: #f5f5f5;
+	--color-surface-chip: var(--color-mondrian-white);
+	--color-surface-input: var(--color-mondrian-white);
+	--color-surface-input-hover: var(--color-mondrian-white);
+	--color-surface-input-focus: var(--color-mondrian-white);
+	--color-surface-ghost-hover: var(--color-mondrian-yellow);
+	--color-surface-ghost-active: #e8c407;
 
-	--color-accent-title-icon: var(--color-green);
-	--color-accent-list-icon: var(--color-gold);
-	--color-accent-user-icon: var(--color-cyan);
-	--color-primary: var(--color-scarlet);
-	--color-primary-dark: #9b0d24;
-	--color-primary-light: var(--color-parrot-red);
-	--color-primary-shadow: rgba(200, 16, 46, 0.28);
-	--color-focus-ring: rgba(200, 16, 46, 0.18);
-	--color-ghost-hover-border: rgba(200, 16, 46, 0.22);
+	--color-primary: var(--color-mondrian-red);
+	--color-primary-dark: #a80706;
+	--color-primary-light: #e81816;
+	--color-primary-shadow: transparent;
+	--color-focus-ring: rgba(17, 17, 17, 0.15);
 
-	--color-spot-1: rgba(200, 16, 46, 0.16);
-	--color-spot-2: rgba(0, 150, 199, 0.14);
-	--color-spot-3: rgba(251, 191, 36, 0.2);
-	--color-spot-4: rgba(64, 145, 108, 0.15);
+	--color-accent-title-icon: var(--color-mondrian-blue);
+	--color-accent-list-icon: var(--color-mondrian-yellow);
+	--color-accent-user-icon: var(--color-mondrian-blue);
+	--color-ghost-hover-border: var(--color-mondrian-black);
 
-	--shadow-card: 0 10px 36px rgba(27, 67, 50, 0.1);
-	--shadow-card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.85);
-	--shadow-feather: 0 2px 8px rgba(27, 67, 50, 0.15);
-	--color-feather-ring: rgba(255, 255, 255, 0.8);
+	--shadow-card: none;
+	--shadow-card-inset: none;
+	--shadow-feather: none;
 
-	/* ── Spacing ── */
 	--space-page-x: 1rem;
-	--space-page-y: 3.5rem;
+	--space-page-y: 2rem;
 	--space-card-padding: 1.5rem;
 	--space-card-padding-lg: 2rem;
-	--space-section: 2rem;
+	--space-section: 1.5rem;
 	--space-stack: 1rem;
 
-	/* ── Radius ── */
-	--radius-card: 1.25rem;
-	--radius-btn: 0.75rem;
-	--radius-input: 0.75rem;
-	--radius-chip: 9999px;
+	--radius-card: 0;
+	--radius-btn: 0;
+	--radius-input: 0;
+	--radius-chip: 0;
 
-	/* ── Typography (overridden by font presets) ── */
-	--font-body: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-	--font-display: var(--font-body);
-	--text-title-size: 1.5rem;
-	--text-title-weight: 600;
-	--text-title-tracking: -0.025em;
-	--text-body-size: 0.875rem;
+	--font-body: 'DM Sans', ui-sans-serif, system-ui, sans-serif;
+	--font-display: 'Archivo Black', 'Arial Black', sans-serif;
+	--text-title-size: clamp(1.5rem, 4vw, 2.25rem);
+	--text-title-weight: 400;
+	--text-title-tracking: 0.04em;
+	--text-body-size: 0.9375rem;
 	--text-label-size: 0.875rem;
 
-	/* ── Layout (overridden by layout presets) ── */
-	--layout-max-width: 32rem;
+	--layout-max-width: 72rem;
 }
 
 @media (prefers-color-scheme: dark) {
 	:root {
-		color-scheme: dark;
-
-		--color-green: #52b788;
-		--color-leaf: #74c69d;
-		--color-jungle: #b7e4c7;
-
-		--color-text: #d8f3dc;
-		--color-text-muted: #95d5b2;
-		--color-error: #ff6b6b;
-		--color-border: rgba(183, 228, 199, 0.16);
-
-		--color-bg-base: #081c15;
-		--color-bg-gradient: linear-gradient(165deg, #081c15 0%, #1b2d26 42%, #0d2137 100%);
-		--color-bg-blob-1: rgba(200, 16, 46, 0.12);
-		--color-bg-blob-2: rgba(0, 180, 216, 0.14);
-		--color-bg-blob-3: rgba(251, 191, 36, 0.1);
-		--color-bg-blob-4: rgba(82, 183, 136, 0.12);
-		--color-bg-dot-1: rgba(200, 16, 46, 0.14);
-		--color-bg-dot-2: rgba(0, 180, 216, 0.12);
-		--color-bg-dot-3: rgba(251, 191, 36, 0.1);
-
-		--color-bg-scrim: rgba(8, 28, 21, 0.72);
-		--color-bg-feather-opacity: 0.45;
-
-		--color-surface-card: rgba(13, 40, 32, 0.82);
-		--color-surface-card-hover: rgba(18, 52, 42, 0.92);
-		--color-surface-chip: rgba(255, 255, 255, 0.06);
-		--color-surface-input: rgba(0, 0, 0, 0.28);
-		--color-surface-input-hover: rgba(0, 0, 0, 0.38);
-		--color-surface-input-focus: rgba(0, 0, 0, 0.45);
-		--color-surface-ghost-hover: rgba(255, 255, 255, 0.06);
-		--color-surface-ghost-active: rgba(255, 255, 255, 0.1);
-
-		--color-accent-title-icon: var(--color-leaf);
-		--color-accent-list-icon: var(--color-sun);
-		--color-primary: #e02020;
-		--color-primary-dark: #c8102e;
-		--color-primary-light: #ff3b4a;
-		--color-primary-shadow: rgba(224, 32, 32, 0.32);
-		--color-focus-ring: rgba(224, 32, 32, 0.22);
-		--color-ghost-hover-border: rgba(224, 32, 32, 0.35);
-
-		--color-spot-1: rgba(200, 16, 46, 0.22);
-		--color-spot-2: rgba(0, 180, 216, 0.2);
-		--color-spot-3: rgba(251, 191, 36, 0.18);
-		--color-spot-4: rgba(82, 183, 136, 0.18);
-
-		--shadow-card: 0 10px 40px rgba(0, 0, 0, 0.35);
-		--shadow-card-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-		--shadow-feather: 0 2px 10px rgba(0, 0, 0, 0.4);
-		--color-feather-ring: rgba(255, 255, 255, 0.15);
+		color-scheme: light;
 	}
 }

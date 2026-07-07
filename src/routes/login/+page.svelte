@@ -5,7 +5,6 @@
 	import Mail from '@lucide/svelte/icons/mail';
 	import User from '@lucide/svelte/icons/user';
 	import UserPlus from '@lucide/svelte/icons/user-plus';
-	import ParrotAside from '$lib/components/ParrotAside.svelte';
 	import type { ActionData } from './$types';
 
 	let { form }: { form: ActionData } = $props();
@@ -15,11 +14,10 @@
 	<div class="parrot-shell">
 		<div class="parrot-card p-6 sm:p-8">
 			<div class="parrot-card-inner">
-				<div class="parrot-feather-strip" aria-hidden="true">
-					<img src="/parrots/macaws.jpg" alt="" width="40" height="40" />
-					<img src="/parrots/amazon.jpg" alt="" width="40" height="40" />
-					<img src="/parrots/blue-gold.jpg" alt="" width="40" height="40" />
-					<img src="/parrots/scarlet-art.jpg" alt="" width="40" height="40" />
+				<div class="login-mondrian-accent" aria-hidden="true">
+					<span class="login-mondrian-block login-mondrian-block--red"></span>
+					<span class="login-mondrian-block login-mondrian-block--blue"></span>
+					<span class="login-mondrian-block login-mondrian-block--yellow"></span>
 				</div>
 
 				<div class="parrot-title-row mb-2">
@@ -70,6 +68,35 @@
 				{/if}
 			</div>
 		</div>
-		<ParrotAside />
 	</div>
 </div>
+
+<style>
+	.login-mondrian-accent {
+		display: grid;
+		grid-template-columns: 2fr 1fr 1fr;
+		gap: var(--color-grid-width);
+		height: 4.5rem;
+		margin-bottom: 1.5rem;
+		padding: var(--color-grid-width);
+		background: var(--color-grid);
+		border: var(--color-grid-width) solid var(--color-grid);
+	}
+
+	.login-mondrian-block {
+		display: block;
+		min-height: 100%;
+	}
+
+	.login-mondrian-block--red {
+		background: var(--color-mondrian-red);
+	}
+
+	.login-mondrian-block--blue {
+		background: var(--color-mondrian-blue);
+	}
+
+	.login-mondrian-block--yellow {
+		background: var(--color-mondrian-yellow);
+	}
+</style>

@@ -4,7 +4,16 @@
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import MovieSearch from '$lib/components/MovieSearch.svelte';
-	import ParrotAside from '$lib/components/ParrotAside.svelte';
+	import MondrianBlockButton from '$lib/components/MondrianBlockButton.svelte';
+	import {
+		buildMondrianLayout,
+		cycleMondrianColor,
+		MONDRIAN_INNER_COLS,
+		MONDRIAN_VIEWPORT_COLS,
+		mondrianPlacementStyle,
+		type MondrianColor,
+		type PlacedMondrianCell
+	} from '$lib/design/mondrian';
 	import type { ActionData, PageServerData } from './$types';
 
 	let { data, form }: { data: PageServerData; form: ActionData } = $props();
@@ -13,6 +22,20 @@
 	const possessiveName = $derived(
 		displayName.endsWith('s') ? `${displayName}'` : `${displayName}'s`
 	);
+
+	const moviesById = $derived(new Map(data.movies.map((movie) => [movie.id, movie])));
+	const layout = $derived(
+		buildMondrianLayout(
+			data.movies.map((movie) => ({
+				id: movie.id,
+				title: movie.title,
+				releaseYear: movie.releaseYear
+			}))
+		)
+	);
+
+	let blockColors = $state<Record<string, MondrianColor>>({});
+
 	let titleInput = $state<HTMLInputElement | undefined>();
 	let movieSearch = $state<MovieSearch | undefined>();
 	let addForm = $state<HTMLFormElement | undefined>();
@@ -36,95 +59,139 @@
 	function movieLabel(title: string, releaseYear: string | null) {
 		return releaseYear ? `${title} (${releaseYear})` : title;
 	}
+
+	function blockKey(prefix: string, cell: PlacedMondrianCell, index: number) {
+		return `${prefix}-${cell.row}-${cell.col}-${index}`;
+	}
+
+	function blockColor(prefix: string, cell: PlacedMondrianCell, index: number): MondrianColor {
+		if (cell.kind !== 'block') return 'white';
+		const key = blockKey(prefix, cell, index);
+		return blockColors[key] ?? cell.color;
+	}
+
+	function cycleBlockColor(prefix: string, cell: PlacedMondrianCell, index: number) {
+		if (cell.kind !== 'block') return;
+		const key = blockKey(prefix, cell, index);
+		blockColors[key] = cycleMondrianColor(blockColor(prefix, cell, index));
+	}
+
+	function innerBlockClass(cell: PlacedMondrianCell, index: number) {
+		return `mondrian-cell mondrian-cell--interactive mondrian-cell--${blockColor('inner', cell, index)}`;
+	}
+
+	function outerBlockClass(cell: PlacedMondrianCell, index: number) {
+		return `mondrian-cell mondrian-cell--interactive mondrian-cell--${blockColor('outer', cell, index)}`;
+	}
 </script>
 
-<div class="parrot-page">
-	<div class="parrot-shell">
-		<div class="parrot-card p-6 sm:p-8">
-			<div class="parrot-card-inner">
-				<header class="parrot-header">
-					<div class="parrot-title-row">
-						<h1 class="parrot-title">{possessiveName} watchlist</h1>
-					</div>
-					<form method="post" action="?/signOut" use:enhance>
-						<button type="submit" class="parrot-btn parrot-btn-ghost px-3 py-1.5 text-sm">
-							<LogOut size={16} aria-hidden="true" />
-							Sign out
-						</button>
-					</form>
-				</header>
+<div
+	class="mondrian-viewport"
+	style={`--viewport-rows: ${layout.viewportRows}; --viewport-cols: ${MONDRIAN_VIEWPORT_COLS}`}
+>
+	{#each layout.outer as cell, index (blockKey('outer', cell, index))}
+		<MondrianBlockButton
+			class={outerBlockClass(cell, index)}
+			style={mondrianPlacementStyle(cell)}
+			color={blockColor('outer', cell, index)}
+			onCycle={() => cycleBlockColor('outer', cell, index)}
+		/>
+	{/each}
 
-				<form
-					bind:this={addForm}
-					method="post"
-					action="?/addMovie"
-					use:enhance={addMovieEnhance}
-					class="mb-6"
-				>
-					<MovieSearch bind:this={movieSearch} bind:inputRef={titleInput} formRef={addForm} />
-				</form>
-
-				{#if form?.message}
-					<p class="parrot-error mb-4">{form.message}</p>
-				{/if}
-
-				{#if data.movies.length === 0}
-					<p class="parrot-empty">
-						<Film size={16} aria-hidden="true" />
-						No movies yet — add one above.
-					</p>
-				{:else}
-					<ul class="parrot-poster-grid">
-						{#each data.movies as movie (movie.id)}
-							<li class="parrot-poster-card">
-								<div class="parrot-poster-media">
-									{#if movie.posterPath}
-										<img
-											src={movie.posterPath}
-											alt=""
-											class="parrot-poster-image"
-											width="342"
-											height="513"
-											loading="lazy"
-										/>
-									{:else}
-										<div class="parrot-poster-placeholder" aria-hidden="true">
-											<Film size={28} />
-										</div>
-									{/if}
-								</div>
-								<div class="parrot-poster-footer">
-									<p class="parrot-poster-title">
-										{movieLabel(movie.title, movie.releaseYear)}
-									</p>
-									<form method="post" action="?/deleteMovie" use:enhance>
-										<input type="hidden" name="id" value={movie.id} />
-										<button
-											type="submit"
-											class="parrot-btn parrot-btn-delete"
-											aria-label="Remove {movie.title}"
-										>
-											<Trash2 size={16} aria-hidden="true" />
-										</button>
-									</form>
-								</div>
-							</li>
-						{/each}
-					</ul>
-				{/if}
-
-				<p class="parrot-tmdb-attribution">
-					<img
-						src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a40269b365ee2031e235a2.svg"
-						alt="TMDB"
-						width="120"
-						height="16"
-						class="parrot-tmdb-logo"
-					/>
-					This product uses the TMDB API but is not endorsed or certified by TMDB.
-				</p>
+	<article
+		class="mondrian-panel"
+		style={`grid-row: 2 / span ${layout.panelRowSpan - 1}; grid-column: 3 / span 8`}
+	>
+		<header class="parrot-header">
+			<div class="parrot-title-row">
+				<h1 class="parrot-title">{possessiveName} watchlist</h1>
 			</div>
+			<form method="post" action="?/signOut" use:enhance>
+				<button type="submit" class="parrot-btn parrot-btn-ghost px-3 py-1.5 text-sm">
+					<LogOut size={16} aria-hidden="true" />
+					Sign out
+				</button>
+			</form>
+		</header>
+
+		<div class="mondrian-search-panel">
+			<form bind:this={addForm} method="post" action="?/addMovie" use:enhance={addMovieEnhance}>
+				<MovieSearch bind:this={movieSearch} bind:inputRef={titleInput} formRef={addForm} />
+			</form>
+
+			{#if form?.message}
+				<p class="parrot-error mt-4">{form.message}</p>
+			{/if}
 		</div>
-		<ParrotAside />
-	</div>
+
+		{#if data.movies.length === 0}
+			<p class="parrot-empty mb-4">
+				<Film size={16} aria-hidden="true" />
+				No movies yet — search above to start your composition.
+			</p>
+		{/if}
+
+		<ul
+			class="mondrian-composition"
+			style={`--inner-cols: ${MONDRIAN_INNER_COLS}; --composition-rows: ${layout.compositionRows}`}
+			aria-label="Watchlist composition"
+		>
+			{#each layout.inner as cell, index (cell.kind === 'movie' ? `movie-${cell.id}` : blockKey('inner', cell, index))}
+				{#if cell.kind === 'block'}
+					<li class={innerBlockClass(cell, index)} style={mondrianPlacementStyle(cell)}>
+						<MondrianBlockButton
+							class="mondrian-color-btn-host"
+							color={blockColor('inner', cell, index)}
+							onCycle={() => cycleBlockColor('inner', cell, index)}
+						/>
+					</li>
+				{:else}
+					{@const movie = moviesById.get(cell.id)}
+					{#if movie}
+						<li class="mondrian-cell mondrian-poster" style={mondrianPlacementStyle(cell)}>
+							<div class="mondrian-poster-media">
+								{#if movie.posterPath}
+									<img
+										src={movie.posterPath}
+										alt={movieLabel(movie.title, movie.releaseYear)}
+										class="mondrian-poster-image"
+										width="342"
+										height="513"
+										loading="lazy"
+									/>
+								{:else}
+									<div class="mondrian-poster-placeholder" aria-hidden="true">
+										<Film size={28} />
+									</div>
+								{/if}
+							</div>
+							<div class="mondrian-poster-overlay">
+								<form method="post" action="?/deleteMovie" use:enhance>
+									<input type="hidden" name="id" value={movie.id} />
+									<button
+										type="submit"
+										class="parrot-btn parrot-btn-delete"
+										aria-label="Remove {movie.title}"
+									>
+										<Trash2 size={16} aria-hidden="true" />
+									</button>
+								</form>
+							</div>
+						</li>
+					{/if}
+				{/if}
+			{/each}
+		</ul>
+
+		<p class="parrot-tmdb-attribution">
+			<img
+				src="/tmdb-logo.png"
+				alt="TMDB"
+				width="120"
+				height="16"
+				class="parrot-tmdb-logo"
+			/>
+			This product uses the TMDB API but is not endorsed or certified by TMDB.
+		</p>
+	</article>
 </div>

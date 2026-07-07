@@ -1,18 +1,6 @@
-/* Layout presets — set html[data-layout="…"] in layout */
-
-html[data-layout='cozy'] {
-	--layout-max-width: 32rem;
-}
-
-html[data-layout='comfortable'] {
-	--layout-max-width: 42rem;
-}
+/* Mondrian layout */
 
 html[data-layout='wide'] {
-	--layout-max-width: 56rem;
-}
-
-html[data-layout='split'] {
 	--layout-max-width: 72rem;
 }
 
@@ -30,57 +18,6 @@ html[data-layout='split'] {
 	gap: var(--space-stack);
 }
 
-html[data-layout='split'] .parrot-shell {
-	gap: 1.5rem;
-}
-
-@media (min-width: 1024px) {
-	html[data-layout='split'] .parrot-shell {
-		display: grid;
-		grid-template-columns: minmax(0, 28rem) minmax(0, 1fr);
-		gap: 2rem;
-		align-items: start;
-	}
-}
-
 .parrot-aside {
 	display: none;
-}
-
-html[data-layout='split'] .parrot-aside {
-	display: block;
-}
-
-.parrot-aside-panel {
-	position: sticky;
-	top: var(--space-page-y);
-	overflow: hidden;
-	border-radius: var(--radius-card);
-	border: 1.5px solid var(--color-border);
-	box-shadow: var(--shadow-card);
-}
-
-.parrot-aside-grid {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 0.5rem;
-	padding: 0.5rem;
-	background: var(--color-surface-card);
-}
-
-.parrot-aside-grid img {
-	display: block;
-	width: 100%;
-	aspect-ratio: 1;
-	object-fit: cover;
-	border-radius: calc(var(--radius-card) - 0.35rem);
-}
-
-.parrot-aside-caption {
-	padding: 0.75rem 1rem 1rem;
-	font-size: 0.8125rem;
-	font-style: italic;
-	color: var(--color-text-muted);
-	background: var(--color-surface-card);
-	border-top: 1px dashed var(--color-border);
 }
