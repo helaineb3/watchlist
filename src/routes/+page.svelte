@@ -3,10 +3,12 @@
 	import Film from '@lucide/svelte/icons/film';
 	import Library from '@lucide/svelte/icons/library';
 	import LogOut from '@lucide/svelte/icons/log-out';
-	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import MovieSearch from '$lib/components/MovieSearch.svelte';
+	import MovieAddMenu from '$lib/components/MovieAddMenu.svelte';
 	import MovieFilter from '$lib/components/MovieFilter.svelte';
+	import MovieSearch from '$lib/components/MovieSearch.svelte';
 	import MondrianBlockButton from '$lib/components/MondrianBlockButton.svelte';
+	import WatchlistMovieModal from '$lib/components/WatchlistMovieModal.svelte';
+	import FlashMessage from '$lib/components/FlashMessage.svelte';
 	import { filterMovies } from '$lib/movies/filter';
 	import {
 		buildMondrianLayout,
@@ -28,7 +30,16 @@
 
 	const moviesById = $derived(new Map(data.movies.map((movie) => [movie.id, movie])));
 	let filterQuery = $state('');
-	const filteredMovies = $derived(filterMovies(data.movies, filterQuery));
+	let listView = $state<'watchlist' | 'watched'>('watchlist');
+	let selectedMovieId = $state<number | null>(null);
+	const selectedMovie = $derived(
+		selectedMovieId === null ? null : (moviesById.get(selectedMovieId) ?? null)
+	);
+	const visibleMovies = $derived(
+		data.movies.filter((movie) => (listView === 'watchlist' ? !movie.watched : movie.watched))
+	);
+	const filteredMovies = $derived(filterMovies(visibleMovies, filterQuery));
+	const pageTitle = $derived(listView === 'watchlist' ? `${possessiveName} watchlist` : `${possessiveName} watched`);
 	const layout = $derived(
 		buildMondrianLayout(
 			filteredMovies.map((movie) => ({
@@ -63,6 +74,14 @@
 
 	function movieLabel(title: string, releaseYear: string | null) {
 		return releaseYear ? `${title} (${releaseYear})` : title;
+	}
+
+	function openMovieModal(movieId: number) {
+		selectedMovieId = movieId;
+	}
+
+	function closeMovieModal() {
+		selectedMovieId = null;
 	}
 
 	function blockKey(prefix: string, cell: PlacedMondrianCell, index: number) {
@@ -109,10 +128,39 @@
 	>
 		<header class="parrot-header">
 			<div class="parrot-title-row">
-				<h1 class="parrot-title">{possessiveName} watchlist</h1>
+				<h1 class="parrot-title">{pageTitle}</h1>
+				<div class="parrot-view-tabs" role="tablist" aria-label="List view">
+					<button
+						type="button"
+						class="parrot-view-tab"
+						class:parrot-view-tab--active={listView === 'watchlist'}
+						role="tab"
+						aria-selected={listView === 'watchlist'}
+						onclick={() => (listView = 'watchlist')}
+					>
+						To watch
+					</button>
+					<button
+						type="button"
+						class="parrot-view-tab"
+						class:parrot-view-tab--active={listView === 'watched'}
+						role="tab"
+						aria-selected={listView === 'watched'}
+						onclick={() => (listView = 'watched')}
+					>
+						Watched
+					</button>
+				</div>
 			</div>
 			<div class="parrot-header-actions">
 				<MovieFilter bind:value={filterQuery} />
+				<MovieAddMenu
+					addAction="?/addMovie"
+					addEnhance={addMovieEnhance}
+					bind:addForm
+					bind:movieSearch
+					bind:titleInput
+				/>
 				<a href="/library" class="parrot-btn parrot-btn-ghost px-3 py-1.5 text-sm">
 					<Library size={16} aria-hidden="true" />
 					Collection
@@ -126,20 +174,25 @@
 			</div>
 		</header>
 
-		<div class="mondrian-search-panel">
-			<form bind:this={addForm} method="post" action="?/addMovie" use:enhance={addMovieEnhance}>
-				<MovieSearch bind:this={movieSearch} bind:inputRef={titleInput} formRef={addForm} />
-			</form>
-
-			{#if form?.message}
-				<p class="parrot-error mt-4">{form.message}</p>
+		{#if form?.message}
+			{#if form.success}
+				<FlashMessage message={form.message} />
+			{:else}
+				<p class="parrot-error mb-4">{form.message}</p>
 			{/if}
-		</div>
+		{/if}
 
 		{#if data.movies.length === 0}
 			<p class="parrot-empty mb-4">
 				<Film size={16} aria-hidden="true" />
-				No movies yet — search above to start your composition.
+				No movies yet — use Add to search for movies.
+			</p>
+		{:else if visibleMovies.length === 0}
+			<p class="parrot-empty mb-4">
+				<Film size={16} aria-hidden="true" />
+				{listView === 'watchlist'
+					? 'Nothing on your watchlist — mark movies as watched from your collection, or add new ones.'
+					: 'No watched movies yet — open a watchlist movie and mark it as watched.'}
 			</p>
 		{:else if filteredMovies.length === 0}
 			<p class="parrot-empty mb-4">
@@ -151,7 +204,7 @@
 		<ul
 			class="mondrian-composition"
 			style={`--inner-cols: ${MONDRIAN_INNER_COLS}; --composition-rows: ${layout.compositionRows}`}
-			aria-label="Watchlist composition"
+			aria-label="{listView === 'watchlist' ? 'Watchlist' : 'Watched'} composition"
 		>
 			{#each layout.inner as cell, index (cell.kind === 'movie' ? `movie-${cell.id}` : blockKey('inner', cell, index))}
 				{#if cell.kind === 'block'}
@@ -166,34 +219,31 @@
 					{@const movie = moviesById.get(cell.id)}
 					{#if movie}
 						<li class="mondrian-cell mondrian-poster" style={mondrianPlacementStyle(cell)}>
-							<div class="mondrian-poster-media">
-								{#if movie.posterPath}
-									<img
-										src={movie.posterPath}
-										alt={movieLabel(movie.title, movie.releaseYear)}
-										class="mondrian-poster-image"
-										width="342"
-										height="513"
-										loading="lazy"
-									/>
-								{:else}
-									<div class="mondrian-poster-placeholder" aria-hidden="true">
-										<Film size={28} />
-									</div>
-								{/if}
-							</div>
+							<button
+								type="button"
+								class="mondrian-poster-open"
+								aria-label="Open {movieLabel(movie.title, movie.releaseYear)}"
+								onclick={() => openMovieModal(movie.id)}
+							>
+								<div class="mondrian-poster-media">
+									{#if movie.posterPath}
+										<img
+											src={movie.posterPath}
+											alt=""
+											class="mondrian-poster-image"
+											width="342"
+											height="513"
+											loading="lazy"
+										/>
+									{:else}
+										<div class="mondrian-poster-placeholder" aria-hidden="true">
+											<Film size={28} />
+										</div>
+									{/if}
+								</div>
+							</button>
 							<div class="mondrian-poster-overlay">
 								<p class="mondrian-poster-title">{movieLabel(movie.title, movie.releaseYear)}</p>
-								<form method="post" action="?/deleteMovie" use:enhance>
-									<input type="hidden" name="id" value={movie.id} />
-									<button
-										type="submit"
-										class="parrot-btn parrot-btn-delete"
-										aria-label="Remove {movie.title}"
-									>
-										<Trash2 size={16} aria-hidden="true" />
-									</button>
-								</form>
 							</div>
 						</li>
 					{/if}
@@ -213,3 +263,7 @@
 		</p>
 	</article>
 </div>
+
+{#if selectedMovie}
+	<WatchlistMovieModal movie={selectedMovie} onClose={closeMovieModal} />
+{/if}

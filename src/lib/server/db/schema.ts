@@ -1,4 +1,4 @@
-import { pgTable, serial, text, timestamp, index, integer } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, index, integer, boolean } from 'drizzle-orm/pg-core';
 import { user } from './auth.schema';
 
 export const movie = pgTable(
@@ -12,6 +12,8 @@ export const movie = pgTable(
 		tmdbId: integer('tmdb_id'),
 		posterPath: text('poster_path'),
 		releaseYear: text('release_year'),
+		rating: integer('rating'),
+		watched: boolean('watched').notNull().default(false),
 		createdAt: timestamp('created_at').defaultNow().notNull()
 	},
 	(table) => [index('movie_userId_idx').on(table.userId)]

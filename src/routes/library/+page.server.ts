@@ -1,11 +1,12 @@
 import { fail, redirect } from '@sveltejs/kit';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import { auth } from '$lib/server/auth';
 import { parseCsvMovies } from '$lib/server/csv';
 import { db } from '$lib/server/db';
-import { ownedMovie } from '$lib/server/db/schema';
+import { movie, ownedMovie } from '$lib/server/db/schema';
 import { matchMoviesForImport } from '$lib/server/tmdb';
+import { watchlistKey } from '$lib/movies/watchlist';
 
 const MAX_IMPORT_ROWS = 50;
 const MAX_FILE_BYTES = 256 * 1024;
@@ -21,6 +22,14 @@ function parseOptionalInt(value: FormDataEntryValue | null) {
 	return parsed;
 }
 
+function parseRating(value: FormDataEntryValue | null) {
+	const raw = value?.toString().trim() ?? '';
+	if (!raw) return null;
+	const parsed = Number(raw);
+	if (!Number.isInteger(parsed) || parsed < 1 || parsed > 5) return null;
+	return parsed;
+}
+
 export const load: PageServerLoad = async (event) => {
 	if (!event.locals.user) {
 		return redirect(302, '/login');
@@ -32,7 +41,26 @@ export const load: PageServerLoad = async (event) => {
 		.where(eq(ownedMovie.userId, event.locals.user.id))
 		.orderBy(desc(ownedMovie.createdAt));
 
-	return { user: event.locals.user, movies };
+	const watchlistRows = await db
+		.select({
+			id: movie.id,
+			title: movie.title,
+			releaseYear: movie.releaseYear,
+			tmdbId: movie.tmdbId,
+			rating: movie.rating,
+			watched: movie.watched
+		})
+		.from(movie)
+		.where(eq(movie.userId, event.locals.user.id));
+
+	const watchlistEntries = watchlistRows.map((entry) => ({
+		key: watchlistKey(entry.title, entry.releaseYear, entry.tmdbId),
+		watchlistId: entry.id,
+		rating: entry.rating,
+		watched: entry.watched
+	}));
+
+	return { user: event.locals.user, movies, watchlistEntries };
 };
 
 export const actions: Actions = {
@@ -122,6 +150,129 @@ export const actions: Actions = {
 				matched: matchedCount,
 				unmatched: matched.length - matchedCount
 			}
+		};
+	},
+	addToWatchlist: async (event) => {
+		if (!event.locals.user) {
+			return redirect(302, '/login');
+		}
+
+		const formData = await event.request.formData();
+		const id = Number(formData.get('id'));
+
+		if (!Number.isInteger(id) || id <= 0) {
+			return fail(400, { message: 'Invalid movie' });
+		}
+
+		const [owned] = await db
+			.select()
+			.from(ownedMovie)
+			.where(and(eq(ownedMovie.id, id), eq(ownedMovie.userId, event.locals.user.id)));
+
+		if (!owned) {
+			return fail(404, { message: 'Movie not found in your collection.' });
+		}
+
+		if (owned.tmdbId) {
+			const [existing] = await db
+				.select({ id: movie.id })
+				.from(movie)
+				.where(and(eq(movie.userId, event.locals.user.id), eq(movie.tmdbId, owned.tmdbId)))
+				.limit(1);
+
+			if (existing) {
+				return fail(400, { message: `${owned.title} is already on your watchlist.` });
+			}
+		} else {
+			const titleMatch = owned.releaseYear
+				? and(
+						eq(movie.userId, event.locals.user.id),
+						eq(movie.title, owned.title),
+						eq(movie.releaseYear, owned.releaseYear)
+					)
+				: and(
+						eq(movie.userId, event.locals.user.id),
+						eq(movie.title, owned.title),
+						isNull(movie.releaseYear)
+					);
+
+			const [existing] = await db.select({ id: movie.id }).from(movie).where(titleMatch).limit(1);
+
+			if (existing) {
+				return fail(400, { message: `${owned.title} is already on your watchlist.` });
+			}
+		}
+
+		await db.insert(movie).values({
+			userId: event.locals.user.id,
+			title: owned.title,
+			tmdbId: owned.tmdbId,
+			posterPath: owned.posterPath,
+			releaseYear: owned.releaseYear,
+			rating: parseRating(formData.get('rating'))
+		});
+
+		return { success: true, watchlistMessage: `Added ${owned.title} to your watchlist.` };
+	},
+	updateWatchlistRating: async (event) => {
+		if (!event.locals.user) {
+			return redirect(302, '/login');
+		}
+
+		const formData = await event.request.formData();
+		const watchlistId = Number(formData.get('watchlistId'));
+
+		if (!Number.isInteger(watchlistId) || watchlistId <= 0) {
+			return fail(400, { message: 'Invalid watchlist movie' });
+		}
+
+		const [updated] = await db
+			.update(movie)
+			.set({ rating: parseRating(formData.get('rating')) })
+			.where(and(eq(movie.id, watchlistId), eq(movie.userId, event.locals.user.id)))
+			.returning({ title: movie.title });
+
+		if (!updated) {
+			return fail(404, { message: 'Watchlist movie not found.' });
+		}
+
+		return {
+			success: true,
+			watchlistMessage: `Updated rating for ${updated.title}.`
+		};
+	},
+	toggleWatched: async (event) => {
+		if (!event.locals.user) {
+			return redirect(302, '/login');
+		}
+
+		const formData = await event.request.formData();
+		const watchlistId = Number(formData.get('watchlistId'));
+
+		if (!Number.isInteger(watchlistId) || watchlistId <= 0) {
+			return fail(400, { message: 'Invalid watchlist movie' });
+		}
+
+		const [current] = await db
+			.select({ watched: movie.watched, title: movie.title })
+			.from(movie)
+			.where(and(eq(movie.id, watchlistId), eq(movie.userId, event.locals.user.id)))
+			.limit(1);
+
+		if (!current) {
+			return fail(404, { message: 'Watchlist movie not found.' });
+		}
+
+		await db
+			.update(movie)
+			.set({ watched: !current.watched })
+			.where(and(eq(movie.id, watchlistId), eq(movie.userId, event.locals.user.id)));
+
+		return {
+			success: true,
+			watchlistMessage: current.watched
+				? `Moved ${current.title} back to your watchlist.`
+				: `Marked ${current.title} as watched.`
 		};
 	},
 	deleteOwnedMovie: async (event) => {

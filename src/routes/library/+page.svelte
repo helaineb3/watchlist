@@ -4,11 +4,14 @@
 	import Library from '@lucide/svelte/icons/library';
 	import LogOut from '@lucide/svelte/icons/log-out';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import CollectionAddMenu from '$lib/components/CollectionAddMenu.svelte';
+	import CollectionMovieModal from '$lib/components/CollectionMovieModal.svelte';
+	import FlashMessage from '$lib/components/FlashMessage.svelte';
+	import MovieAddMenu from '$lib/components/MovieAddMenu.svelte';
 	import MovieFilter from '$lib/components/MovieFilter.svelte';
 	import MovieSearch from '$lib/components/MovieSearch.svelte';
 	import MondrianBlockButton from '$lib/components/MondrianBlockButton.svelte';
 	import { filterMovies } from '$lib/movies/filter';
+	import { watchlistEntryForMovie } from '$lib/movies/watchlist';
 	import {
 		buildMondrianLayout,
 		cycleMondrianColor,
@@ -29,6 +32,13 @@
 
 	const moviesById = $derived(new Map(data.movies.map((movie) => [movie.id, movie])));
 	let filterQuery = $state('');
+	let selectedMovieId = $state<number | null>(null);
+	const selectedMovie = $derived(
+		selectedMovieId === null ? null : (moviesById.get(selectedMovieId) ?? null)
+	);
+	const selectedWatchlistEntry = $derived(
+		selectedMovie ? watchlistEntryForMovie(selectedMovie, data.watchlistEntries) : null
+	);
 	const filteredMovies = $derived(filterMovies(data.movies, filterQuery));
 	const layout = $derived(
 		buildMondrianLayout(
@@ -64,6 +74,14 @@
 
 	function movieLabel(title: string, releaseYear: string | null) {
 		return releaseYear ? `${title} (${releaseYear})` : title;
+	}
+
+	function openMovieModal(movieId: number) {
+		selectedMovieId = movieId;
+	}
+
+	function closeMovieModal() {
+		selectedMovieId = null;
 	}
 
 	function blockKey(prefix: string, cell: PlacedMondrianCell, index: number) {
@@ -128,9 +146,11 @@
 			</div>
 			<div class="parrot-header-actions">
 				<MovieFilter bind:value={filterQuery} />
-				<CollectionAddMenu
+				<MovieAddMenu
+					addAction="?/addOwnedMovie"
 					addEnhance={addMovieEnhance}
 					importEnhance={importEnhance}
+					showCsvImport
 					{importing}
 					bind:addForm
 					bind:movieSearch
@@ -154,11 +174,13 @@
 		{/if}
 
 		{#if form?.importSummary}
-			<p class="parrot-import-summary mb-4">
-				Imported {form.importSummary.total} movies —
-				{form.importSummary.matched} matched with posters,
-				{form.importSummary.unmatched} without a TMDB match.
-			</p>
+			<FlashMessage
+				message={`Imported ${form.importSummary.total} movies — ${form.importSummary.matched} matched with posters, ${form.importSummary.unmatched} without a TMDB match.`}
+			/>
+		{/if}
+
+		{#if form?.watchlistMessage}
+			<FlashMessage message={form.watchlistMessage} />
 		{/if}
 
 		{#if data.movies.length === 0}
@@ -191,25 +213,37 @@
 					{@const movie = moviesById.get(cell.id)}
 					{#if movie}
 						<li class="mondrian-cell mondrian-poster" style={mondrianPlacementStyle(cell)}>
-							<div class="mondrian-poster-media">
-								{#if movie.posterPath}
-									<img
-										src={movie.posterPath}
-										alt={movieLabel(movie.title, movie.releaseYear)}
-										class="mondrian-poster-image"
-										width="342"
-										height="513"
-										loading="lazy"
-									/>
-								{:else}
-									<div class="mondrian-poster-placeholder" aria-hidden="true">
-										<Film size={28} />
-									</div>
-								{/if}
-							</div>
+							<button
+								type="button"
+								class="mondrian-poster-open"
+								aria-label="Open {movieLabel(movie.title, movie.releaseYear)}"
+								onclick={() => openMovieModal(movie.id)}
+							>
+								<div class="mondrian-poster-media">
+									{#if movie.posterPath}
+										<img
+											src={movie.posterPath}
+											alt=""
+											class="mondrian-poster-image"
+											width="342"
+											height="513"
+											loading="lazy"
+										/>
+									{:else}
+										<div class="mondrian-poster-placeholder" aria-hidden="true">
+											<Film size={28} />
+										</div>
+									{/if}
+								</div>
+							</button>
 							<div class="mondrian-poster-overlay">
 								<p class="mondrian-poster-title">{movieLabel(movie.title, movie.releaseYear)}</p>
-								<form method="post" action="?/deleteOwnedMovie" use:enhance>
+								<form
+									class="mondrian-poster-action mondrian-poster-action--delete"
+									method="post"
+									action="?/deleteOwnedMovie"
+									use:enhance
+								>
 									<input type="hidden" name="id" value={movie.id} />
 									<button
 										type="submit"
@@ -239,10 +273,10 @@
 	</article>
 </div>
 
-<style>
-	.parrot-import-summary {
-		font-size: var(--text-body-size);
-		font-weight: 600;
-		color: var(--color-text);
-	}
-</style>
+{#if selectedMovie}
+	<CollectionMovieModal
+		movie={selectedMovie}
+		watchlistEntry={selectedWatchlistEntry}
+		onClose={closeMovieModal}
+	/>
+{/if}

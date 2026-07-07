@@ -29,6 +29,20 @@
       "when": 1783384802367,
       "tag": "0004_acoustic_nekra",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783388400000,
+      "tag": "0005_movie_rating",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783392000000,
+      "tag": "0006_movie_watched",
+      "breakpoints": true
     }
   ]
 }

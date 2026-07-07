@@ -1,0 +1,1 @@
+ALTER TABLE "movie" ADD COLUMN IF NOT EXISTS "watched" boolean DEFAULT false NOT NULL;

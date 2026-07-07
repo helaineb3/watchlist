@@ -13,15 +13,19 @@
 	}) => Promise<void>;
 
 	let {
+		addAction,
 		addEnhance,
 		importEnhance,
+		showCsvImport = false,
 		importing = false,
 		addForm = $bindable<HTMLFormElement | undefined>(),
 		movieSearch = $bindable<MovieSearch | undefined>(),
 		titleInput = $bindable<HTMLInputElement | undefined>()
 	}: {
+		addAction: string;
 		addEnhance: FormEnhance;
-		importEnhance: FormEnhance;
+		importEnhance?: FormEnhance;
+		showCsvImport?: boolean;
 		importing?: boolean;
 		addForm?: HTMLFormElement | undefined;
 		movieSearch?: MovieSearch | undefined;
@@ -40,10 +44,7 @@
 		panelMode = null;
 	}
 
-	function openPanel(event: MouseEvent, mode: Exclude<PanelMode, null>) {
-		event.stopPropagation();
-		menuOpen = false;
-		panelMode = mode;
+	function focusPanel(mode: Exclude<PanelMode, null>) {
 		void tick().then(() => {
 			if (mode === 'search') {
 				titleInput?.focus();
@@ -53,13 +54,28 @@
 		});
 	}
 
+	function openPanel(event: MouseEvent, mode: Exclude<PanelMode, null>) {
+		event.stopPropagation();
+		menuOpen = false;
+		panelMode = mode;
+		focusPanel(mode);
+	}
+
 	function toggleMenu(event: MouseEvent) {
 		event.stopPropagation();
+
 		if (panelMode) {
 			closeAll();
 			return;
 		}
-		menuOpen = !menuOpen;
+
+		if (showCsvImport) {
+			menuOpen = !menuOpen;
+			return;
+		}
+
+		panelMode = 'search';
+		focusPanel('search');
 	}
 
 	function handleDocumentClick(event: MouseEvent) {
@@ -73,6 +89,10 @@
 	}
 
 	function csvEnhance() {
+		if (!importEnhance) {
+			return async () => {};
+		}
+
 		const submit = importEnhance();
 		return async (opts: { result: { type: string }; update: () => Promise<void> }) => {
 			await submit(opts);
@@ -86,11 +106,11 @@
 
 <svelte:document onclick={handleDocumentClick} onkeydown={handleDocumentKeydown} />
 
-<div class="collection-add" bind:this={rootRef}>
+<div class="movie-add" bind:this={rootRef}>
 	<button
 		type="button"
-		class="parrot-btn parrot-btn-primary collection-add-trigger"
-		aria-haspopup="menu"
+		class="parrot-btn parrot-btn-primary movie-add-trigger"
+		aria-haspopup={showCsvImport ? 'menu' : undefined}
 		aria-expanded={menuOpen || panelMode !== null}
 		onclick={toggleMenu}
 	>
@@ -99,15 +119,15 @@
 		<ChevronDown
 			size={16}
 			aria-hidden="true"
-			class={menuOpen || panelMode ? 'collection-add-chevron-open' : ''}
+			class={menuOpen || panelMode ? 'movie-add-chevron-open' : ''}
 		/>
 	</button>
 
-	{#if menuOpen}
-		<div class="collection-add-menu" role="menu">
+	{#if showCsvImport && menuOpen}
+		<div class="movie-add-menu" role="menu">
 			<button
 				type="button"
-				class="collection-add-menu-item"
+				class="movie-add-menu-item"
 				role="menuitem"
 				onclick={(event) => openPanel(event, 'search')}
 			>
@@ -119,7 +139,7 @@
 			</button>
 			<button
 				type="button"
-				class="collection-add-menu-item"
+				class="movie-add-menu-item"
 				role="menuitem"
 				onclick={(event) => openPanel(event, 'csv')}
 			>
@@ -133,25 +153,25 @@
 	{/if}
 
 	{#if panelMode === 'search'}
-		<div class="collection-add-panel" role="region" aria-label="Search for a movie">
-			<form bind:this={addForm} method="post" action="?/addOwnedMovie" use:enhance={addEnhance}>
+		<div class="movie-add-panel" role="region" aria-label="Search for a movie">
+			<form bind:this={addForm} method="post" action={addAction} use:enhance={addEnhance}>
 				<MovieSearch bind:this={movieSearch} bind:inputRef={titleInput} formRef={addForm} />
 			</form>
 		</div>
 	{/if}
 
-	{#if panelMode === 'csv'}
-		<div class="collection-add-panel" role="region" aria-label="Upload CSV">
+	{#if showCsvImport && panelMode === 'csv'}
+		<div class="movie-add-panel" role="region" aria-label="Upload CSV">
 			<form
 				method="post"
 				action="?/importCsv"
 				enctype="multipart/form-data"
 				use:enhance={csvEnhance}
 			>
-				<div class="collection-add-csv-row">
+				<div class="movie-add-csv-row">
 					<input
 						bind:this={csvInputRef}
-						class="parrot-input collection-add-file-input"
+						class="parrot-input movie-add-file-input"
 						type="file"
 						name="csv"
 						accept=".csv,text/csv"
@@ -159,14 +179,14 @@
 					/>
 					<button
 						type="submit"
-						class="parrot-btn parrot-btn-secondary collection-add-import-btn"
+						class="parrot-btn parrot-btn-secondary movie-add-import-btn"
 						disabled={importing}
 					>
 						<Upload size={16} aria-hidden="true" />
 						{importing ? 'Importing…' : 'Import'}
 					</button>
 				</div>
-				<p class="collection-add-hint">
+				<p class="movie-add-hint">
 					CSV needs <strong>title</strong> and <strong>year</strong> columns. Replaces your collection.
 				</p>
 			</form>
@@ -175,19 +195,19 @@
 </div>
 
 <style>
-	.collection-add {
+	.movie-add {
 		position: relative;
 	}
 
-	.collection-add-trigger :global(.collection-add-chevron-open) {
+	.movie-add-trigger :global(.movie-add-chevron-open) {
 		transform: rotate(180deg);
 	}
 
-	.collection-add-trigger :global(svg:last-child) {
+	.movie-add-trigger :global(svg:last-child) {
 		transition: transform 0.15s ease;
 	}
 
-	.collection-add-menu {
+	.movie-add-menu {
 		position: absolute;
 		top: calc(100% + 0.375rem);
 		right: 0;
@@ -200,7 +220,7 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 	}
 
-	.collection-add-menu-item {
+	.movie-add-menu-item {
 		display: flex;
 		align-items: flex-start;
 		gap: 0.625rem;
@@ -214,26 +234,26 @@
 		font-family: var(--font-body);
 	}
 
-	.collection-add-menu-item:hover,
-	.collection-add-menu-item:focus-visible {
+	.movie-add-menu-item:hover,
+	.movie-add-menu-item:focus-visible {
 		background: var(--color-surface-ghost-hover);
 		outline: none;
 	}
 
-	.collection-add-menu-item strong {
+	.movie-add-menu-item strong {
 		display: block;
 		font-size: var(--text-body-size);
 		font-weight: 700;
 	}
 
-	.collection-add-menu-item small {
+	.movie-add-menu-item small {
 		display: block;
 		margin-top: 0.125rem;
 		font-size: 0.75rem;
 		color: var(--color-text-muted);
 	}
 
-	.collection-add-panel {
+	.movie-add-panel {
 		position: absolute;
 		top: calc(100% + 0.375rem);
 		right: 0;
@@ -245,24 +265,24 @@
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 	}
 
-	.collection-add-csv-row {
+	.movie-add-csv-row {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.625rem;
 		align-items: center;
 	}
 
-	.collection-add-file-input {
+	.movie-add-file-input {
 		flex: 1 1 12rem;
 		min-width: 0;
 		padding: 0.625rem 0.875rem;
 	}
 
-	.collection-add-import-btn {
+	.movie-add-import-btn {
 		flex: 0 0 auto;
 	}
 
-	.collection-add-hint {
+	.movie-add-hint {
 		margin: 0.625rem 0 0;
 		font-size: 0.75rem;
 		line-height: 1.4;
